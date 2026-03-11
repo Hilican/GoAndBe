@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun LoginScreen(
-    onAddClick0: () -> Unit,
+    onBack: () -> Unit,
 ) {
     // 1. State for the input fields
     var email by remember { mutableStateOf("") }
@@ -80,7 +80,7 @@ fun LoginScreen(
         // 5. Return Button
         Button(
             onClick = {
-                onAddClick0()
+                onBack()
             },
             modifier = Modifier
                 .fillMaxWidth()

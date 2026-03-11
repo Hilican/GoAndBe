@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)//ExposedDropdownMenuBox
 @Composable
 fun PreferencesScreen(
-    onAddClick0: () -> Unit,
+    onBack: () -> Unit,
 ) {
     // 1. State for the input fields
     var isNotificationsEnabled by remember { mutableStateOf(true) }
@@ -134,7 +134,7 @@ fun PreferencesScreen(
         // 5. Return Button
         Button(
             onClick = {
-                onAddClick0()
+                onBack()
             },
             modifier = Modifier
                 .fillMaxWidth()

@@ -17,19 +17,90 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ToAllScreens(
-    onAddClick7: () -> Unit,
+    toAboutUs: () -> Unit,
+    toLogIn: () -> Unit,
+    toPreferences: () -> Unit,
+    toSignIn: () -> Unit,
+    toTermsAndConditions: () -> Unit,
+    toTripList: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        VerticalGap()
         FloatingActionButton(
-            onClick = onAddClick7,
+            onClick = toAboutUs,
             modifier = Modifier.width(200.dp)
         ) {
             Text(
                 text = "About Us",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+        VerticalGap()
+        FloatingActionButton(
+            onClick = toLogIn,
+            modifier = Modifier.width(200.dp)
+        ) {
+            Text(
+                text = "Log In",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+        VerticalGap()
+        FloatingActionButton(
+            onClick = toPreferences,
+            modifier = Modifier.width(200.dp)
+        ) {
+            Text(
+                text = "Preferences",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+        VerticalGap()
+        FloatingActionButton(
+            onClick = toSignIn,
+            modifier = Modifier.width(200.dp)
+        ) {
+            Text(
+                text = "Sign In",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+        VerticalGap()
+        FloatingActionButton(
+            onClick = toTermsAndConditions,
+            modifier = Modifier.width(200.dp)
+        ) {
+            Text(
+                text = "Terms & Conditions",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+        VerticalGap()
+        FloatingActionButton(
+            onClick = toTripList,
+            modifier = Modifier.width(200.dp)
+        ) {
+            Text(
+                text = "Trip List",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),

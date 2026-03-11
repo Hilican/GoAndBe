@@ -43,7 +43,7 @@ data class Trip(
 
 @Composable
 fun TripListScreen(
-    onAddClick0: () -> Unit,
+    onBack: () -> Unit,
 ) {
     // 1. State: The list of trips
     val tripList = remember { mutableStateListOf<Trip>() }
@@ -63,7 +63,7 @@ fun TripListScreen(
         ) {
             Button(
                 onClick = {
-                    onAddClick0()
+                    onBack()
                 },
                 modifier = Modifier
                     .fillMaxWidth()

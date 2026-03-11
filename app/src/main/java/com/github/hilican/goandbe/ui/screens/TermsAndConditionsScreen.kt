@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun TermsScreen(
-    onAddClick0: () -> Unit,
+fun TermsAndConditionsScreen(
+    onBack: () -> Unit,
 ) {
 
     val scrollState = rememberScrollState()
@@ -42,7 +42,7 @@ fun TermsScreen(
 
         Spacer(modifier = Modifier.height(26.dp))
         FloatingActionButton(
-            onClick = onAddClick0,
+            onClick = onBack,
             modifier = Modifier
                 .padding(bottom = 32.dp)
                 .fillMaxWidth(),

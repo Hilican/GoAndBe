@@ -9,9 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
-
-import com.github.hilican.goandbe.ui.screens.ToAllScreens
-import com.github.hilican.goandbe.ui.screens.AboutUsScreen
 import com.github.hilican.goandbe.ui.screens.*
 
 class MainActivity : ComponentActivity() {
@@ -37,13 +34,36 @@ fun TravelerAppNavigation() {
     ) {// 1. ToAllScreens (Starting Screen)
         composable<TempHome> {
             ToAllScreens(
-                onAddClick7 = { navController.navigate(AboutUsRoute) }
+                toAboutUs = { navController.navigate(AboutUsRoute) },
+                toLogIn = { navController.navigate(LogInRoute) },
+                toPreferences = { navController.navigate(PreferencesRoute) },
+                toSignIn = { navController.navigate(SignInRoute) },
+                toTermsAndConditions = { navController.navigate(TermsAndConditionsRoute) },
+                toTripList = { navController.navigate(TripListScreenRoute) },
             )
         }
-
-        // 2. AboutUsScreen
         composable<AboutUsRoute> {
             AboutUsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable<PreferencesRoute> {
+            PreferencesScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable<SignInRoute> {
+            SignInScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable<TermsAndConditionsRoute> {
+            TermsAndConditionsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable<TripListScreenRoute> {
+            TripListScreen(
                 onBack = { navController.popBackStack() }
             )
         }

@@ -1,0 +1,12 @@
+package com.github.hilican.goandbe.ui.screens
+
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun VerticalGap(height: Int = 16) {
+    Spacer(modifier = Modifier.height(height.dp))
+}

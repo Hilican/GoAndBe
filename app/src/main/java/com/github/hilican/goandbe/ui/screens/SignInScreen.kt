@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun SignInScreen(
-    onAddClick0: () -> Unit,
+    onBack: () -> Unit,
 ) {
     // 1. State for the input fields
     var username by remember { mutableStateOf("") }
@@ -111,7 +111,7 @@ fun SignInScreen(
         // 5. Return Button
         Button(
             onClick = {
-                onAddClick0()
+                onBack()
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -120,9 +120,4 @@ fun SignInScreen(
             Text("Return", fontSize = 18.sp)
         }
     }
-}
-
-@Composable
-fun VerticalGap(height: Int = 16) {
-    Spacer(modifier = Modifier.height(height.dp))
 }

@@ -50,6 +50,7 @@ fun AboutUsScreen(
         // Version Info
         Text(
             text = stringResource(id = R.string.app_version),
+            fontSize = 24.sp,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(vertical = 16.dp)
