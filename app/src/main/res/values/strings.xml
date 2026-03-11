@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">GoAndBe</string>
+    <string name="app_version">0.1.0\n</string>
+    <string name="team_info">Creator of this app: Hilican</string>
+    <string name="about_summary">Create an useful Traveler App</string>
+    <string name="TermsAndConditions">
+    [DRAFT: SUBJECT TO CHANGE]\n\n
+    TERMS AND CONDITIONS\n
+    Last Updated: March 11, 2026\n\n
+    1. DESCRIPTION OF SERVICE\n
+    GoAndBe is a travel organization tool that allows you to manually plan itineraries by saving dates, times, and descriptions of activities. It also includes an AI assistant to provide recommendations based strictly on information you provide.\n\n
+    2. USER-GENERATED CONTENT\n
+    You own the descriptions and schedules you input. You are solely responsible for the accuracy of your itinerary. While we strive to keep your data safe, we recommend keeping a backup of vital travel documents elsewhere.\n\n
+    3. AI RECOMMENDATIONS\n
+    The \"Small AI\" is a helpful sidekick, not a travel agent. It only knows what you tell it directly. AI-generated suggestions are provided \"as-is\" without guarantees of accuracy, availability, or safety. Always verify opening hours and local advisories independently.\n\n
+    4. USER CONDUCT\n
+    You agree not to use the App for illegal activities, attempt to \"jailbreak\" the AI, or reverse-engineer the software.\n\n
+    5. LIMITATION OF LIABILITY\n
+    Travel involves risks. GoAndBe is a planning tool and is not liable for missed flights, canceled events, personal injury, or technical glitches that may limit access to your plans.\n\n
+    6. PRIVACY AND DATA\n
+    Your privacy is important. We use your data to power your itineraries and improve the AI\'s responses to you. We do not sell your personal travel plans to third parties.\n\n
+    7. CHANGES TO TERMS\n
+    We may update these terms occasionally. Continued use of the App after updates constitutes acceptance of the new terms.
+</string>
+</resources>

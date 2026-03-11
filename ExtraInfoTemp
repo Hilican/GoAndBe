@@ -1,0 +1,7 @@
+Min 		SDK 24 to ensure 99,2%device compatibility for travelers
+Target 		SDK 35 to comply with Google Play security standards
+Compile 	SDK 35 same as TargetSDK
+
+Kotlin 2.3.10
+
+AppName: GoAndBe
