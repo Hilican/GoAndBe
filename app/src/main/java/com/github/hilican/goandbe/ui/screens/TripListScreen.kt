@@ -1,140 +1,140 @@
 package com.github.hilican.goandbe.ui.screens
 
 import android.icu.text.SimpleDateFormat
-import androidx.compose.foundation.clickable
+import android.icu.util.TimeZone
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import java.util.Date
 import java.util.Locale
 
-data class Trip(
-    val id: Int,
-    val name: String,
-    val startDate: String,
-    val endDate: String,
-    val createdAt: Long = System.currentTimeMillis() // Used for sorting
-)
+import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.*
+import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
 
 @Composable
 fun TripListScreen(
     onBack: () -> Unit,
+    viewModel: TripListViewModel = viewModel()
 ) {
     // 1. State: The list of trips
-    val tripList = remember { mutableStateListOf<Trip>() }
+    val tripList by viewModel.tripList.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Trip")
+    var tripIdForItinerary by remember { mutableStateOf<Int?>(null) }
+
+    // Si hay un ID seleccionado, mostramos la pantalla del itinerario
+    if (tripIdForItinerary != null) {
+        ItineraryScreen(
+            tripId = tripIdForItinerary!!,
+            viewModel = viewModel,
+            onBack = {
+                // Al volver, limpiamos el estado para que se vuelva a mostrar la lista
+                tripIdForItinerary = null
             }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            Button(
-                onClick = {
-                    onBack()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RectangleShape
-            ) {
-                Text("Return", fontSize = 18.sp)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "My Trips",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(16.dp)
-            )
-
-            // 2. The List (Sorted: Newest at the top)
-            LazyColumn {
-                items(tripList.sortedByDescending { it.createdAt }) {
-                        trip -> TripItem(trip)
-                }
-            }
-        }
-
-        // 3. The "Create New Trip" Dialog
-        if (showDialog) {
-            CreateTripDialog(
-                onDismiss = { showDialog = false },
-                onConfirm = { name, start, end ->
-                    tripList.add(Trip(tripList.size, name, start, end))
-                    showDialog = false
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun TripItem(trip: Trip) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = trip.name,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+    }else
+    {
 
-            VerticalGap(4) // Using your custom spacer!
+        Scaffold(
+            floatingActionButton = {
+                FloatingActionButton(onClick = { showDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Trip")
+                }
+            },
+            snackbarHost = {
+                // This is the "landing pad"
+                SnackbarHost(hostState = snackbarHostState)
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+            ) {
+                Button(
+                    onClick = {
+                        onBack()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RectangleShape
+                ) {
+                    Text("Return", fontSize = 18.sp)
+                }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
-                    text = "${trip.startDate} - ${trip.endDate}",
-                    style = MaterialTheme.typography.bodyMedium
+                    text = "My Trips",
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
+
+                // 2. The List (Sorted: Newest at the top)
+                LazyColumn {
+                    items(tripList.sortedByDescending { it.createdAt }) { trip ->
+                        TripItem(
+                            trip = trip,
+                            onDeleteClick = { tripId -> viewModel.deleteTrip(tripId) },
+                            // CAMBIO AQUÍ: Recibimos los datos y llamamos al ViewModel
+                            onAddActivityConfirm = { desc, dateMillis, cost ->
+                                viewModel.addActivityToTrip(
+                                    tripId = trip.id,
+                                    description = desc,
+                                    dateMillis = dateMillis,
+                                    cost = cost
+                                )
+                            },
+                            onViewActivitiesClick = { tripId ->
+                                tripIdForItinerary = tripId
+                            }
+                        )
+                    }
+                }
+            }
+
+            // 3. The "Create New Trip" Dialog
+            if (showDialog) {
+                CreateTripDialog(
+                    onDismiss = { showDialog = false },
+                    onConfirm = { name, start, end ->
+
+                        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+                            timeZone = TimeZone.getTimeZone("UTC")
+                        }
+
+                        viewModel.addTrip(
+                            destination = name,
+                            startDate = formatter.format(Date(start)),
+                            endDate = formatter.format(Date(end))
+                        )
+                        showDialog = false
+                    }
                 )
             }
         }
@@ -144,12 +144,16 @@ fun TripItem(trip: Trip) {
 @Composable
 fun CreateTripDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String) -> Unit
+    onConfirm: (String, Long, Long) -> Unit
 ) {
     // 1. Local state for the text fields inside the dialog
     var name by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf("") }
-    var endDate by remember { mutableStateOf("") }
+    var startDate by remember { mutableLongStateOf(0L) }
+    var endDate by remember { mutableLongStateOf(0L) }
+
+    var isNameError by remember { mutableStateOf(false) }
+    var date1ErrorMessage by remember { mutableStateOf<String?>(null) }
+    var date2ErrorMessage by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -160,28 +164,89 @@ fun CreateTripDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Where to?") },
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = {
+                        name = it
+                        if (it.isNotBlank()) isNameError = false
+                    },
+                    label = { Text("Trip Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = isNameError,
+                    supportingText = {
+                        if (isNameError) {
+                            Text(text = "El nombre no puede estar vacío", color = MaterialTheme.colorScheme.error)
+                        }
+                    }
                 )
 
                 DatePickerField(
                     label = "Start Date",
                     selectedDate = startDate,
-                    onDateSelected = { startDate = it }
+                    onDateSelected = {
+                        startDate = it
+                        date1ErrorMessage = null
+                    },
+                    isError = date1ErrorMessage != null,
                 )
+
+                if (date1ErrorMessage != null) {
+                    Text(
+                        text = date1ErrorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
 
                 DatePickerField(
                     label = "End Date",
                     selectedDate = endDate,
-                    onDateSelected = { endDate = it }
+                    onDateSelected = {
+                        endDate = it
+                        date2ErrorMessage = null
+                        },
+                    isError = date2ErrorMessage != null,
                 )
+
+                if (date2ErrorMessage != null) {
+                    Text(
+                        text = date2ErrorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    if (name.isNotBlank()) {
+                    // 1. Calculamos qué está mal
+                    val nameError = name.isBlank()
+                    // Comprobamos que ambas fechas existan Y que el orden sea correcto
+                    var d1ErrorMsg: String? = null
+                    var d2ErrorMsg: String? = null
+                    val dateError = startDate == 0L
+                    if(dateError)
+                    {
+                        d1ErrorMsg = "La fecha es obligatoria"
+                    }
+                    var date2Error = endDate == 0L
+                    if(date2Error)
+                    {
+                        d2ErrorMsg = "La fecha es obligatoria"
+                    }
+                    if(!dateError && !date2Error && startDate > endDate)
+                    {
+                        date2Error = true
+                        d2ErrorMsg = "La fecha tiene que ser despues de la primera fecha"
+                    }
+                    // 2. Actualizamos los estados visuales (los bordes rojos)
+                    isNameError = nameError
+                    date1ErrorMessage = d1ErrorMsg
+                    date2ErrorMessage = d2ErrorMsg
+
+                    // 3. Solo si esta bien, confirmamos
+                    if (!nameError && !dateError && !date2Error) {
                         onConfirm(name, startDate, endDate)
                     }
                 }
@@ -193,69 +258,128 @@ fun CreateTripDialog(
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
             }
-        }
+        },
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerField(
-    label: String,
-    selectedDate: String,
-    onDateSelected: (String) -> Unit
+fun AddActivityDialog(
+    tripStartDate: String,
+    tripEndDate: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String, Long, Int) -> Unit
 ) {
-    var showModal by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
+    // 1. Estados locales para los campos
+    var description by remember { mutableStateOf("") }
+    var dateMillis by remember { mutableLongStateOf(0L) }
+    var costText by remember { mutableStateOf("") }
 
-    // 1. Wrap in a Box to intercept clicks
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { showModal = true }
-    ) {
-        OutlinedTextField(
-            value = selectedDate,
-            onValueChange = { },
-            label = { Text(label) },
-            modifier = Modifier.fillMaxWidth(),
-            trailingIcon = {
-                Icon(Icons.Default.DateRange, contentDescription = null)
-            },
-            shape = RectangleShape, // Keeping your sharp borders
-            enabled = false, // Prevents keyboard from popping up
-            colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledBorderColor = MaterialTheme.colorScheme.outline,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
-    }
+    // Estados para manejar errores visuales (bordes rojos)
+    var isDescriptionError by remember { mutableStateOf(false) }
+    var dateErrorMessage by remember { mutableStateOf<String?>(null) }
+    var isCostError by remember { mutableStateOf(false) }
 
-    // 2. The Experimental Dialog
-    if (showModal) {
-        DatePickerDialog(
-            onDismissRequest = { showModal = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    val dateMillis = datePickerState.selectedDateMillis
-                    if (dateMillis != null) {
-                        // Formatting the date for your trip list
-                        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                        onDateSelected(formatter.format(Date(dateMillis)))
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Nueva Actividad", style = MaterialTheme.typography.titleLarge)
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Campo 1: String (Descripción)
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = {
+                        description = it
+                        if (it.isNotBlank()) isDescriptionError = false
+                    },
+                    label = { Text("Descripción (ej. Visita al museo)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = isDescriptionError,
+                    supportingText = {
+                        if (isDescriptionError) Text("La descripción es obligatoria", color = MaterialTheme.colorScheme.error)
                     }
-                    showModal = false
-                }) {
-                    Text("OK")
+                )
+
+                // Campo 2: Fecha (Usando tu DatePickerField personalizado)
+                DatePickerField(
+                    label = "Día de la actividad",
+                    selectedDate = dateMillis,
+                    onDateSelected = {
+                        dateMillis = it
+                        dateErrorMessage = null
+                    },
+                    isError = dateErrorMessage != null
+                )
+
+                if (dateErrorMessage != null) {
+                    Text(
+                        text = dateErrorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showModal = false }) {
-                    Text("Cancel")
-                }
+
+                // Campo 3: Int (Coste)
+                OutlinedTextField(
+                    value = costText,
+                    onValueChange = {
+                        costText = it
+                        isCostError = false
+                    },
+                    label = { Text("Coste estimado (€)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = isCostError,
+                    supportingText = {
+                        if (isCostError) Text("Introduce un número válido", color = MaterialTheme.colorScheme.error)
+                    }
+                )
             }
-        ) {
-            DatePicker(state = datePickerState)
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    // Fechas en millis
+                    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).apply {
+                        timeZone = java.util.TimeZone.getTimeZone("UTC")
+                    }
+                    val startMillis = formatter.parse(tripStartDate)?.time ?: 0L
+                    val endMillis = formatter.parse(tripEndDate)?.time ?: Long.MAX_VALUE
+
+                    // Validación
+                    val costInt = costText.toIntOrNull()
+
+                    val descError = description.isBlank()
+                    var dErrorMsg: String? = null
+                    if (dateMillis == 0L) {
+                        dErrorMsg = "La fecha es obligatoria"
+                    } else if (dateMillis < startMillis || dateMillis > endMillis) {
+                        // Si se sale del rango, le mostramos exactamente entre qué días debe elegir
+                        dErrorMsg = "Debe ser entre $tripStartDate y $tripEndDate"
+                    }
+                    val cError = costInt == null // Error si está vacío o no es un número
+
+                    // Actualizamos la UI si hay errores
+                    isDescriptionError = descError
+                    dateErrorMessage = dErrorMsg
+                    isCostError = cError
+
+                    // 3. Confirmamos solo si es correcto
+                    if (!descError && dErrorMsg == null && !cError) {
+                        // El !! es seguro aquí porque cError garantiza que costInt no es null
+                        onConfirm(description, dateMillis, costInt)
+                    }
+                }
+            ) {
+                Text("Añadir")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
         }
-    }
+    )
 }

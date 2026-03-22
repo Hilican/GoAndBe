@@ -22,3 +22,9 @@ object TripListScreenRoute //AboutUsScreen
 
 @Serializable
 object PreferencesRoute //AboutUsScreen
+
+@Serializable
+object MainPageScreenRoute //AboutUsScreen
+
+@Serializable
+object UserSettingsRoute

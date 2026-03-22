@@ -4,16 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @Composable
 fun ToAllScreens(
@@ -23,6 +17,8 @@ fun ToAllScreens(
     toSignIn: () -> Unit,
     toTermsAndConditions: () -> Unit,
     toTripList: () -> Unit,
+    toMainPage: () -> Unit,
+    toUserSettings: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
@@ -30,82 +26,22 @@ fun ToAllScreens(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         VerticalGap()
-        FloatingActionButton(
-            onClick = toAboutUs,
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(
-                text = "About Us",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
+        NavigationButton("About Us",toAboutUs)
         VerticalGap()
-        FloatingActionButton(
-            onClick = toLogIn,
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(
-                text = "Log In",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
+        NavigationButton("Log In",toLogIn)
         VerticalGap()
-        FloatingActionButton(
-            onClick = toPreferences,
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(
-                text = "Preferences",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
+        NavigationButton("Preferences",toPreferences)
         VerticalGap()
-        FloatingActionButton(
-            onClick = toSignIn,
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(
-                text = "Sign In",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
+        NavigationButton("Sign In",toSignIn)
         VerticalGap()
-        FloatingActionButton(
-            onClick = toTermsAndConditions,
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(
-                text = "Terms & Conditions",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
+        NavigationButton("Terms & Conditions",toTermsAndConditions)
         VerticalGap()
-        FloatingActionButton(
-            onClick = toTripList,
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(
-                text = "Trip List",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
+        NavigationButton("Terms & Conditions",toTermsAndConditions)
+        VerticalGap()
+        NavigationButton("Trip List",toTripList)
+        VerticalGap()
+        NavigationButton("MainScreen",toMainPage)
+        VerticalGap()
+        NavigationButton("User Settings",toUserSettings)
     }
 }

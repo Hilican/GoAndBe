@@ -1,5 +1,7 @@
 package com.github.hilican.goandbe.ui.screens
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -9,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -20,11 +23,25 @@ fun PreferencesScreen(
     onBack: () -> Unit,
 ) {
     // 1. State for the input fields
-    var isNotificationsEnabled by remember { mutableStateOf(true) }
-    var expanded by remember { mutableStateOf(false) }
     val languages = listOf("English", "Spanish", "French", "Portuguese", "German")
-    var selectedLanguage by remember { mutableStateOf(languages[0]) }
-    var theme by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val sharedPreferences = remember {
+        context.getSharedPreferences("user_preferences", Context.MODE_PRIVATE)
+    }
+    val savedNotifications = remember {
+        sharedPreferences.getBoolean("notifications_enabled", true)
+    }
+    val savedLanguage = remember {
+        sharedPreferences.getString("selected_language", languages[0]) ?: languages[0]
+    }
+    val savedThemes = remember {
+        sharedPreferences.getString("saved_themes", "") ?: String()
+    }
+
+    var expanded by remember { mutableStateOf(false) }
+    var notifications by remember { mutableStateOf(savedNotifications) }
+    var selectedLanguage by remember { mutableStateOf(savedLanguage) }
+    var theme by remember { mutableStateOf(savedThemes) }
 
     Column(
         modifier = Modifier
@@ -52,7 +69,7 @@ fun PreferencesScreen(
             Column {
                 Text(text = "Notifications", style = MaterialTheme.typography.bodyLarge)
                 Text(
-                    text = if (isNotificationsEnabled) "Enabled" else "Disabled",
+                    text = if (notifications) "Enabled" else "Disabled",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
@@ -60,8 +77,8 @@ fun PreferencesScreen(
 
             // The actual Boolean control
             Switch(
-                checked = isNotificationsEnabled,
-                onCheckedChange = { isNotificationsEnabled = it }
+                checked = notifications,
+                onCheckedChange = { notifications = it }
             )
         }
 
@@ -96,7 +113,6 @@ fun PreferencesScreen(
                         onClick = {
                             selectedLanguage = language
                             expanded = false
-                            // TODO: Logic to actually change app locale later
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                     )
@@ -118,10 +134,18 @@ fun PreferencesScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 4. Login Button
+        // 4. Confirm Changes Button
         Button(
             onClick = {
-                TODO("Implement authentication logic and navigation")
+                // Guardamos el idioma seleccionado de forma persistente
+                sharedPreferences.edit()
+                    .putString("selected_language", selectedLanguage)
+                    .putBoolean("notifications_enabled", notifications)
+                    .putString("saved_themes", theme)
+                    .apply() // .apply() guarda los datos en segundo plano
+
+                // Opcional: Mostramos un pequeño mensaje para confirmar al usuario
+                Toast.makeText(context, "Preferences saved!", Toast.LENGTH_SHORT).show()
             },
             modifier = Modifier
                 .fillMaxWidth()
