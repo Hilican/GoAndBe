@@ -26,27 +26,27 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.util.Date
 import java.util.Locale
 
 import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.*
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
+import com.github.hilican.goandbe.domain.Trip
+import com.github.hilican.goandbe.domain.mockTrip
 
 @Composable
 fun TripListScreen(
     onBack: () -> Unit,
     viewModel: TripListViewModel = viewModel()
 ) {
-    // 1. State: The list of trips
     val tripList by viewModel.tripList.collectAsState()
-    var showDialog by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
 
     var tripIdForItinerary by remember { mutableStateOf<Int?>(null) }
 
-    // Si hay un ID seleccionado, mostramos la pantalla del itinerario
     if (tripIdForItinerary != null) {
         ItineraryScreen(
             tripId = tripIdForItinerary!!,
@@ -56,87 +56,108 @@ fun TripListScreen(
                 tripIdForItinerary = null
             }
         )
-    }else
-    {
-
-        Scaffold(
-            floatingActionButton = {
-                FloatingActionButton(onClick = { showDialog = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Trip")
-                }
+    } else {
+        TripListContent(
+            tripList = tripList,
+            onBack = onBack,
+            onAddTrip = { name, start, end -> viewModel.addTrip(name, start, end) },
+            onDeleteTrip = { id -> viewModel.deleteTrip(id) },
+            onAddActivity = { tripId, desc, date, cost ->
+                viewModel.addActivityToTrip(tripId, desc, date, cost)
             },
-            snackbarHost = {
-                // This is the "landing pad"
-                SnackbarHost(hostState = snackbarHostState)
+            onSelectTrip = { selectedId -> tripIdForItinerary = selectedId }
+        )
+    }
+}
+
+@Composable
+fun TripListContent(
+    tripList: List<Trip>,
+    onBack: () -> Unit,
+    onAddTrip: (String, String, String) -> Unit,
+    onDeleteTrip: (Int) -> Unit,
+    onAddActivity: (Int, String, Long, Int) -> Unit,
+    onSelectTrip: (Int) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = "Add Trip")
             }
-        ) { padding ->
-            Column(
+        },
+        snackbarHost = {
+            // This is the "landing pad"
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            Button(
+                onClick = {
+                    onBack()
+                },
                 modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RectangleShape
             ) {
-                Button(
-                    onClick = {
-                        onBack()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RectangleShape
-                ) {
-                    Text("Return", fontSize = 18.sp)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "My Trips",
-                    style = MaterialTheme.typography.headlineLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
-
-                // 2. The List (Sorted: Newest at the top)
-                LazyColumn {
-                    items(tripList.sortedByDescending { it.createdAt }) { trip ->
-                        TripItem(
-                            trip = trip,
-                            onDeleteClick = { tripId -> viewModel.deleteTrip(tripId) },
-                            // CAMBIO AQUÍ: Recibimos los datos y llamamos al ViewModel
-                            onAddActivityConfirm = { desc, dateMillis, cost ->
-                                viewModel.addActivityToTrip(
-                                    tripId = trip.id,
-                                    description = desc,
-                                    dateMillis = dateMillis,
-                                    cost = cost
-                                )
-                            },
-                            onViewActivitiesClick = { tripId ->
-                                tripIdForItinerary = tripId
-                            }
-                        )
-                    }
-                }
+                Text("Return", fontSize = 18.sp)
             }
 
-            // 3. The "Create New Trip" Dialog
-            if (showDialog) {
-                CreateTripDialog(
-                    onDismiss = { showDialog = false },
-                    onConfirm = { name, start, end ->
+            Spacer(modifier = Modifier.height(16.dp))
 
-                        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
-                            timeZone = TimeZone.getTimeZone("UTC")
+            Text(
+                text = "My Trips",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(16.dp)
+            )
+
+            // 2. The List (Sorted: Newest at the top)
+            LazyColumn {
+                items(tripList.sortedByDescending { it.createdAt }) { trip ->
+                    TripItem(
+                        trip = trip,
+                        onDeleteClick = { tripId -> onDeleteTrip(tripId) },
+                        onAddActivityConfirm = { desc, dateMillis, cost ->
+                            onAddActivity(
+                                trip.id,
+                                desc,
+                                dateMillis,
+                                cost
+                            )
+                        },
+                        onViewActivitiesClick = { tripId ->
+                            onSelectTrip(tripId)
                         }
-
-                        viewModel.addTrip(
-                            destination = name,
-                            startDate = formatter.format(Date(start)),
-                            endDate = formatter.format(Date(end))
-                        )
-                        showDialog = false
-                    }
-                )
+                    )
+                }
             }
+        }
+
+        // 3. The "Create New Trip" Dialog
+        if (showDialog) {
+            CreateTripDialog(
+                onDismiss = { showDialog = false },
+                onConfirm = { name, start, end ->
+
+                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }
+
+                    onAddTrip(
+                        name,
+                        formatter.format(Date(start)),
+                        formatter.format(Date(end))
+                    )
+                    showDialog = false
+                }
+            )
         }
     }
 }
@@ -342,7 +363,7 @@ fun AddActivityDialog(
             Button(
                 onClick = {
                     // Fechas en millis
-                    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).apply {
+                    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
                         timeZone = java.util.TimeZone.getTimeZone("UTC")
                     }
                     val startMillis = formatter.parse(tripStartDate)?.time ?: 0L
@@ -382,4 +403,23 @@ fun AddActivityDialog(
             }
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TripListPreview() {
+    GoAndBeTheme {
+        // Usamos la versión CONTENT (Stateless)
+        TripListContent(
+            tripList = listOf(
+                mockTrip, // El que creamos antes para Roma
+                mockTrip.copy(id = 2, name = "París", startDate = "10/06/2026") // Una copia rápida
+            ),
+            onBack = { },
+            onAddTrip = { _, _, _ -> },
+            onDeleteTrip = { },
+            onAddActivity = { _, _, _, _ -> },
+            onSelectTrip = { }
+        )
+    }
 }

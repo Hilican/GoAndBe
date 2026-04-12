@@ -12,6 +12,19 @@ import org.junit.Assert.*
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+        val x = 0
+        var y = false
+        if (x in 1..10) {
+            y = true
+        }
+        for (z in 9 downTo 0 step 3) {
+            print(z)
+        }
+        print("\n")
+        val i = 10
+        val s = "Kotlin"
+        println("i = $i")
+        println("Length of $s is ${s.length}")
+        assertEquals(true, y)
     }
 }

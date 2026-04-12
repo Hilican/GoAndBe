@@ -23,8 +23,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.hilican.goandbe.domain.ItineraryItem
+import com.github.hilican.goandbe.domain.mockItineraryItem
+import com.github.hilican.goandbe.domain.mockTrip
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import java.util.Locale
 
 @Composable
@@ -88,5 +92,17 @@ fun ActivityItem(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun preview() {
+    GoAndBeTheme {
+        // Creamos un objeto de prueba
+        ActivityItem (
+            activity = mockItineraryItem,
+            onDeleteClick = { }
+        )
     }
 }

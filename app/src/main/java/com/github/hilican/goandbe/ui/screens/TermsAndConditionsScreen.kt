@@ -21,8 +21,10 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 
 @Composable
 fun TermsAndConditionsScreen(
@@ -61,6 +63,17 @@ fun TermsAndConditionsScreen(
             text = stringResource(id = R.string.TermsAndConditions),
             modifier = Modifier.padding(16.dp),
             style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun preview()
+{
+    GoAndBeTheme {
+        TermsAndConditionsScreen(
+            onBack = {}
         )
     }
 }

@@ -29,10 +29,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.hilican.goandbe.domain.Trip
+import com.github.hilican.goandbe.domain.mockTrip
 import com.github.hilican.goandbe.ui.screens.AddActivityDialog
 import com.github.hilican.goandbe.ui.screens.VerticalGap
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 
 @Composable
 fun TripItem(
@@ -41,7 +44,6 @@ fun TripItem(
     onAddActivityConfirm: (String, Long, Int) -> Unit = { _, _, _ -> },
     onViewActivitiesClick: (Int) -> Unit = {}
 ) {
-
     var showOptions by remember { mutableStateOf(false) }
 
     var showAddActivityDialog by remember { mutableStateOf(false)}
@@ -94,7 +96,7 @@ fun TripItem(
                 modifier = Modifier.padding(vertical = 4.dp)
             )
 
-            // 4. NUEVO: Menú expandible con los 3 botones
+            // Menú expandible con los 3 botones
             if (showOptions) {
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -145,7 +147,6 @@ fun TripItem(
                         selectedTripId = null
                     },
                     onConfirm = { desc, dateMillis, costInt ->
-                        // CAMBIO AQUÍ: Usamos el callback en lugar del viewModel
                         onAddActivityConfirm(desc, dateMillis, costInt)
 
                         showAddActivityDialog = false
@@ -154,5 +155,19 @@ fun TripItem(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Trip Item - Cerrado")
+@Composable
+private fun TripItemClosedPreview() {
+    GoAndBeTheme {
+        // Usamos el mockTrip que definimos antes
+        TripItem(
+            trip = mockTrip,
+            onDeleteClick = {},
+            onAddActivityConfirm = { _, _, _ -> },
+            onViewActivitiesClick = {}
+        )
     }
 }

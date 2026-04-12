@@ -19,22 +19,40 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
+import com.github.hilican.goandbe.domain.Trip
+import com.github.hilican.goandbe.domain.mockTrip
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
+import kotlin.Int
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItineraryScreen(
     tripId: Int,
     viewModel: TripListViewModel,
     onBack: () -> Unit
 ) {
-    // Obtenemos la lista reactiva
     val tripList by viewModel.tripList.collectAsState()
-
-    // Buscamos el viaje específico
     val trip = tripList.find { it.id == tripId }
 
-    // Si por algún motivo se borró el viaje mientras lo veíamos, volvemos atrás
+    // Llamamos al contenido puro
+    ItineraryContent(
+        trip = trip,
+        onBack = onBack,
+        onDeleteActivity = { activityId ->
+            viewModel.deleteActivityFromTrip(tripId = tripId, activityId = activityId)
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ItineraryContent(
+    trip: Trip?, // Recibe el viaje ya buscado o null si está cargando
+    onBack: () -> Unit,
+    onDeleteActivity: (Int) -> Unit // Callback para borrar
+) {
+    // Si el viaje es null, mostramos la carga
     if (trip == null) {
         Scaffold(
             topBar = {
@@ -58,10 +76,11 @@ fun ItineraryScreen(
         return // Detenemos la ejecución aquí hasta que el viaje cargue
     }
 
+    // Si el viaje existe, mostramos el Scaffold real
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Itinerario: ${trip.name}") },
+                title = { Text(trip.name) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
@@ -70,6 +89,9 @@ fun ItineraryScreen(
             )
         }
     ) { padding ->
+        // ... Todo tu código de LazyColumn y trip.activities
+        // IMPORTANTE: Donde antes llamabas a viewModel.deleteActivity...
+        // ahora llamas a onDeleteActivity(activity.id)
         if (trip.activities.isEmpty()) {
             // Pantalla vacía si no hay actividades
             Box(
@@ -96,11 +118,24 @@ fun ItineraryScreen(
                     ActivityItem(
                         activity = activity,
                         onDeleteClick = {
-                            viewModel.deleteActivityFromTrip(tripId = trip.id, activityId = activity.id)
+                            onDeleteActivity(activity.id)
                         }
                     )
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun preview() {
+    GoAndBeTheme {
+        // Creamos un objeto de prueba
+        ItineraryContent(
+            trip = mockTrip,
+            onBack = { },
+            onDeleteActivity = { }
+        )
     }
 }

@@ -25,7 +25,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -137,26 +139,28 @@ fun MainPage(
                         Text(text = "Abajo")
                     }
                 },
-                /**
-                snackbarHost = {
-                    // This is the "landing pad"
-                    SnackbarHost(hostState = snackbarHostState)
-                },
-                //Ejemplo de un snackbar
-                floatingActionButton = {
-                FloatingActionButton(onClick = {
-                scope.launch {
-                snackbarHostState.showSnackbar("To Develop")
-                }
-                }) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Test")
-                }
-                }**/
             ) { padding ->
                 Column(modifier.padding(padding)) {
                     Text(text = "contenido")
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun preview()
+{
+    GoAndBeTheme {
+        MainPage (
+            toAboutUs = {},
+            toLogIn = {},
+            toPreferences = {},
+            toSignIn = {},
+            toTermsAndConditions = {},
+            toTripList = {},
+            toUserSettings = {}
+        )
     }
 }

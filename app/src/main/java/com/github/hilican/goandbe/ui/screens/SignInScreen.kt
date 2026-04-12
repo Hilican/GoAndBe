@@ -12,8 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 
 @Composable
 fun SignInScreen(
@@ -119,5 +121,16 @@ fun SignInScreen(
         ) {
             Text("Return", fontSize = 18.sp)
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun preview()
+{
+    GoAndBeTheme {
+        SignInScreen(
+            onBack = {}
+        )
     }
 }

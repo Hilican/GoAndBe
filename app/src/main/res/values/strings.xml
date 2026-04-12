@@ -21,5 +21,10 @@
     Your privacy is important. We use your data to power your itineraries and improve the AI\'s responses to you. We do not sell your personal travel plans to third parties.\n\n
     7. CHANGES TO TERMS\n
     We may update these terms occasionally. Continued use of the App after updates constitutes acceptance of the new terms.
-</string>
+    </string>
+
+    //Preferences screen
+    <string name="label_notifications">Notifications</string>
+    <string name="status_enabled">Enabled</string>
+    <string name="status_disabled">Disabled</string>
 </resources>

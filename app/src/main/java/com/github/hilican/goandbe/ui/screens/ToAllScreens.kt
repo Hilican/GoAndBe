@@ -8,6 +8,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 
 @Composable
 fun ToAllScreens(
@@ -43,5 +45,23 @@ fun ToAllScreens(
         NavigationButton("MainScreen",toMainPage)
         VerticalGap()
         NavigationButton("User Settings",toUserSettings)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun preview()
+{
+    GoAndBeTheme {
+        ToAllScreens(
+            toAboutUs = {},
+            toLogIn = {},
+            toPreferences = {},
+            toSignIn = {},
+            toTermsAndConditions = {},
+            toTripList = {},
+            toMainPage = {},
+            toUserSettings = {},
+        )
     }
 }
