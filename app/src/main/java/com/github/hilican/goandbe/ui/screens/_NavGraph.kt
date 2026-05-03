@@ -4,12 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    sharedViewModel: TripListViewModel
+    authViewModel: AuthViewModel,
+    tripListViewModel: TripListViewModel,
 ) {
     NavHost(
         navController = navController,
@@ -34,7 +36,9 @@ fun NavGraph(
         }
         composable<LogInRoute> {
             LoginScreen(
-                onBack = { navController.popBackStack() }
+                viewModel = authViewModel,
+                onBack = { navController.popBackStack() },
+                onNavigateToHome = { navController.navigate(MainPageScreenRoute)}
             )
         }
         composable<PreferencesRoute> {
@@ -43,13 +47,16 @@ fun NavGraph(
             )
         }
         composable<UserSettingsRoute> {
-            UserSettingsScreen(
-                onBack = { navController.popBackStack() }
+            UserInfoScreen(
+                viewModel = authViewModel,
+                onBack = { navController.popBackStack() },
             )
         }
         composable<SignInRoute> {
             SignInScreen(
-                onBack = { navController.popBackStack() }
+                viewModel = authViewModel,
+                onBack = { navController.popBackStack() },
+                onNavigateToHome = { navController.navigate(MainPageScreenRoute)}
             )
         }
         composable<TermsAndConditionsRoute> {
@@ -59,13 +66,14 @@ fun NavGraph(
         }
         composable<TripListScreenRoute> {
             TripListScreen(
-                viewModel = sharedViewModel,
+                viewModel = tripListViewModel,
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable<MainPageScreenRoute> {
             MainPage(
+                viewModel = authViewModel,
                 toAboutUs = { navController.navigate(AboutUsRoute) },
                 toLogIn = { navController.navigate(LogInRoute) },
                 toPreferences = { navController.navigate(PreferencesRoute) },

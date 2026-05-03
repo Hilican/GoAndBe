@@ -28,20 +28,21 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.hilican.goandbe.data.Trip
+import com.github.hilican.goandbe.data.TripWithItinerary
+import com.github.hilican.goandbe.domain.mockListTrips
+import com.github.hilican.goandbe.domain.mockTripWithItinerary
 import java.util.Date
 import java.util.Locale
 
 import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.*
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
-import com.github.hilican.goandbe.domain.Trip
-import com.github.hilican.goandbe.domain.mockTrip
 
 @Composable
 fun TripListScreen(
     onBack: () -> Unit,
-    viewModel: TripListViewModel = viewModel()
+    viewModel: TripListViewModel
 ) {
     val tripList by viewModel.tripList.collectAsState()
 
@@ -60,23 +61,30 @@ fun TripListScreen(
         TripListContent(
             tripList = tripList,
             onBack = onBack,
-            onAddTrip = { name, start, end -> viewModel.addTrip(name, start, end) },
-            onDeleteTrip = { id -> viewModel.deleteTrip(id) },
+            onAddTrip = { name, start, end ->
+                viewModel.addTrip(name, start, end)
+            },
+            onDeleteTrip = { trip ->
+                viewModel.deleteTrip(trip)
+            },
             onAddActivity = { tripId, desc, date, cost ->
                 viewModel.addActivityToTrip(tripId, desc, date, cost)
             },
-            onSelectTrip = { selectedId -> tripIdForItinerary = selectedId }
+            onSelectTrip = { selectedId ->
+                // selectedId ahora debe ser String desde TripListContent
+                tripIdForItinerary = selectedId
+            }
         )
     }
 }
 
 @Composable
 fun TripListContent(
-    tripList: List<Trip>,
+    tripList: List<TripWithItinerary>,
     onBack: () -> Unit,
-    onAddTrip: (String, String, String) -> Unit,
-    onDeleteTrip: (Int) -> Unit,
-    onAddActivity: (Int, String, Long, Int) -> Unit,
+    onAddTrip: (String, Long, Long) -> Unit,
+    onDeleteTrip: (Trip) -> Unit,
+    onAddActivity: (Int, String, Long, Long) -> Unit,
     onSelectTrip: (Int) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -120,20 +128,20 @@ fun TripListContent(
 
             // 2. The List (Sorted: Newest at the top)
             LazyColumn {
-                items(tripList.sortedByDescending { it.createdAt }) { trip ->
+                items(tripList.sortedByDescending { it.trip.startDate }) { tripWithItinerary ->
                     TripItem(
-                        trip = trip,
-                        onDeleteClick = { tripId -> onDeleteTrip(tripId) },
+                        tripWithItinerary = tripWithItinerary,
+                        onDeleteClick = { onDeleteTrip(tripWithItinerary.trip) },
                         onAddActivityConfirm = { desc, dateMillis, cost ->
                             onAddActivity(
-                                trip.id,
+                                tripWithItinerary.trip.tripId,
                                 desc,
                                 dateMillis,
                                 cost
                             )
                         },
-                        onViewActivitiesClick = { tripId ->
-                            onSelectTrip(tripId)
+                        onViewActivitiesClick = {
+                            onSelectTrip(tripWithItinerary.trip.tripId)
                         }
                     )
                 }
@@ -145,15 +153,10 @@ fun TripListContent(
             CreateTripDialog(
                 onDismiss = { showDialog = false },
                 onConfirm = { name, start, end ->
-
-                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
-                        timeZone = TimeZone.getTimeZone("UTC")
-                    }
-
                     onAddTrip(
                         name,
-                        formatter.format(Date(start)),
-                        formatter.format(Date(end))
+                        start,
+                        end
                     )
                     showDialog = false
                 }
@@ -283,143 +286,18 @@ fun CreateTripDialog(
     )
 }
 
-@Composable
-fun AddActivityDialog(
-    tripStartDate: String,
-    tripEndDate: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String, Long, Int) -> Unit
-) {
-    // 1. Estados locales para los campos
-    var description by remember { mutableStateOf("") }
-    var dateMillis by remember { mutableLongStateOf(0L) }
-    var costText by remember { mutableStateOf("") }
-
-    // Estados para manejar errores visuales (bordes rojos)
-    var isDescriptionError by remember { mutableStateOf(false) }
-    var dateErrorMessage by remember { mutableStateOf<String?>(null) }
-    var isCostError by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = "Nueva Actividad", style = MaterialTheme.typography.titleLarge)
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Campo 1: String (Descripción)
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = {
-                        description = it
-                        if (it.isNotBlank()) isDescriptionError = false
-                    },
-                    label = { Text("Descripción (ej. Visita al museo)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = isDescriptionError,
-                    supportingText = {
-                        if (isDescriptionError) Text("La descripción es obligatoria", color = MaterialTheme.colorScheme.error)
-                    }
-                )
-
-                // Campo 2: Fecha (Usando tu DatePickerField personalizado)
-                DatePickerField(
-                    label = "Día de la actividad",
-                    selectedDate = dateMillis,
-                    onDateSelected = {
-                        dateMillis = it
-                        dateErrorMessage = null
-                    },
-                    isError = dateErrorMessage != null
-                )
-
-                if (dateErrorMessage != null) {
-                    Text(
-                        text = dateErrorMessage!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-
-                // Campo 3: Int (Coste)
-                OutlinedTextField(
-                    value = costText,
-                    onValueChange = {
-                        costText = it
-                        isCostError = false
-                    },
-                    label = { Text("Coste estimado (€)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    isError = isCostError,
-                    supportingText = {
-                        if (isCostError) Text("Introduce un número válido", color = MaterialTheme.colorScheme.error)
-                    }
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    // Fechas en millis
-                    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
-                        timeZone = java.util.TimeZone.getTimeZone("UTC")
-                    }
-                    val startMillis = formatter.parse(tripStartDate)?.time ?: 0L
-                    val endMillis = formatter.parse(tripEndDate)?.time ?: Long.MAX_VALUE
-
-                    // Validación
-                    val costInt = costText.toIntOrNull()
-
-                    val descError = description.isBlank()
-                    var dErrorMsg: String? = null
-                    if (dateMillis == 0L) {
-                        dErrorMsg = "La fecha es obligatoria"
-                    } else if (dateMillis < startMillis || dateMillis > endMillis) {
-                        // Si se sale del rango, le mostramos exactamente entre qué días debe elegir
-                        dErrorMsg = "Debe ser entre $tripStartDate y $tripEndDate"
-                    }
-                    val cError = costInt == null // Error si está vacío o no es un número
-
-                    // Actualizamos la UI si hay errores
-                    isDescriptionError = descError
-                    dateErrorMessage = dErrorMsg
-                    isCostError = cError
-
-                    // 3. Confirmamos solo si es correcto
-                    if (!descError && dErrorMsg == null && !cError) {
-                        // El !! es seguro aquí porque cError garantiza que costInt no es null
-                        onConfirm(description, dateMillis, costInt)
-                    }
-                }
-            ) {
-                Text("Añadir")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        }
-    )
-}
 
 @Preview(showBackground = true)
 @Composable
 private fun TripListPreview() {
     GoAndBeTheme {
-        // Usamos la versión CONTENT (Stateless)
         TripListContent(
-            tripList = listOf(
-                mockTrip, // El que creamos antes para Roma
-                mockTrip.copy(id = 2, name = "París", startDate = "10/06/2026") // Una copia rápida
-            ),
+            tripList = mockListTrips,
             onBack = { },
-            onAddTrip = { _, _, _ -> },
-            onDeleteTrip = { },
-            onAddActivity = { _, _, _, _ -> },
-            onSelectTrip = { }
+            onAddTrip = {_,_,_ -> },
+            onDeleteTrip = {},
+            onAddActivity = {_,_,_,_ -> },
+            onSelectTrip = {}
         )
     }
 }

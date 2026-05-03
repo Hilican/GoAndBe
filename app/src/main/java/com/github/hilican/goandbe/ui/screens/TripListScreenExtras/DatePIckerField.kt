@@ -26,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
-import com.github.hilican.goandbe.domain.mockTrip
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import java.util.Calendar
 import java.util.Date

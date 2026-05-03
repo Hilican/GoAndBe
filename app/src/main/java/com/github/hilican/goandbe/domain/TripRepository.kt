@@ -1,49 +1,41 @@
 package com.github.hilican.goandbe.domain
 
-import com.github.hilican.goandbe.data.FakeTripDataSource
+import com.github.hilican.goandbe.data.ItineraryItem
+import com.github.hilican.goandbe.data.Trip
+import com.github.hilican.goandbe.data.TripDao
+import com.github.hilican.goandbe.data.TripWithItinerary
+import kotlinx.coroutines.flow.Flow
 
 
-class TripRepository {
-    // In-memory list to hold the trips
-    //private val trips = mutableListOf<Trip>()
-    private val trips = FakeTripDataSource.getTrips().toMutableList()
-
+class TripRepository (private val tripDao: TripDao) {
     // READ
-    fun getAllTrips(): List<Trip> {
-        return trips.toList() // Return a copy to prevent external modification
+    fun getTripsForUser(userId: String): Flow<List<TripWithItinerary>> {
+        return tripDao.getTripsWithItineraryForUser(userId)
     }
 
-    fun getTripById(id: Int): Trip? {
-        return trips.find { it.id == id }
-    }
-
-    fun getAllTripsLenght(): Int {
-        return trips.size
+    suspend fun getTripById(id: Int): Trip? {
+        return tripDao.getTripById(id)
     }
 
     // CREATE
-    fun addTrip(trip: Trip) {
-        trips.add(trip)
+    suspend fun addTrip(trip: Trip) {
+        tripDao.insertTrip(trip)
     }
 
     // UPDATE
-    fun editTrip(updatedTrip: Trip) {
-        val index = trips.indexOfFirst { it.id == updatedTrip.id }
-        if (index != -1) {
-            trips[index] = updatedTrip
-        }
+    suspend fun editTrip(updatedTrip: Trip) {
+        tripDao.updateTrip(updatedTrip)
     }
 
     // DELETE
-    fun deleteTrip(tripId: Int) {
-        trips.removeAll { it.id == tripId }
+    suspend fun deleteTrip(trip: Trip) {
+        tripDao.deleteTrip(trip)
     }
 
-    private var currentActivityIdCounter = 0
+    // Para las actividades (ItineraryItems)
+    suspend fun addActivity(item: ItineraryItem) = tripDao.insertItineraryItem(item)
 
-    fun getNewActivityId(): Int {
-        val id = currentActivityIdCounter
-        currentActivityIdCounter++
-        return id
-    }
+    suspend fun updateActivity(item: ItineraryItem) = tripDao.insertItineraryItem(item)
+
+    suspend fun deleteActivity(item: ItineraryItem) = tripDao.deleteItineraryItem(item)
 }

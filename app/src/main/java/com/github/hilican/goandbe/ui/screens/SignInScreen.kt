@@ -10,16 +10,42 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
+import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
+
 
 @Composable
 fun SignInScreen(
+    viewModel: AuthViewModel,
     onBack: () -> Unit,
+    onNavigateToHome: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+        viewModel.clearError()
+    }
+    // Aquí conectamos el ViewModel con la UI
+    SignInContent(
+        errorMsg = viewModel.errorMessage,
+        isLoading = viewModel.isLoading,
+        onSignInClick = { email, pass, username ->
+            viewModel.signIn( email, pass, username) { onNavigateToHome() }
+        },
+        onBack = onBack
+    )
+}
+
+@Composable
+fun SignInContent(
+    errorMsg: String?,
+    isLoading: Boolean,
+    onSignInClick: (String, String, String) -> Unit,
+    onBack: () -> Unit
 ) {
     // 1. State for the input fields
     var username by remember { mutableStateOf("") }
@@ -98,14 +124,16 @@ fun SignInScreen(
 
         // 4. Login Button
         Button(
-            onClick = {
-                TODO("Implement Sign In")
-            },
+            onClick = { onSignInClick(email, password, username) },
+            enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
             Text("Sign In", fontSize = 18.sp)
+        }
+        errorMsg?.let {
+            Text(text = it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
         }
 
         VerticalGap()
@@ -129,8 +157,11 @@ fun SignInScreen(
 private fun preview()
 {
     GoAndBeTheme {
-        SignInScreen(
-            onBack = {}
+        SignInContent(
+            isLoading = false,
+            errorMsg = "patata",
+            onBack = {},
+            onSignInClick = { _, _, _ -> }
         )
     }
 }

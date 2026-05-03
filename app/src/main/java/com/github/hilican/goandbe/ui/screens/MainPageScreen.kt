@@ -28,9 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
+import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage(
     modifier: Modifier = Modifier,
@@ -41,10 +42,45 @@ fun MainPage(
     toTermsAndConditions: () -> Unit,
     toTripList: () -> Unit,
     toUserSettings: () -> Unit,
+    viewModel: AuthViewModel,
+) {
+
+    val isLoggedIn = viewModel.isUserLoggedIn
+
+    MainPageContent(
+        modifier = Modifier,
+        toAboutUs = toAboutUs,
+        toLogIn = toLogIn,
+        toPreferences = toPreferences,
+        toSignIn = toSignIn,
+        toTermsAndConditions = toTermsAndConditions,
+        toTripList = toTripList,
+        toUserSettings = toUserSettings,
+        onLogOutClick = { ->
+            viewModel.logout()
+        },
+        isLoggedIn = isLoggedIn
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainPageContent(
+    modifier: Modifier = Modifier,
+    toAboutUs: () -> Unit,
+    toLogIn: () -> Unit,
+    toPreferences: () -> Unit,
+    toSignIn: () -> Unit,
+    toTermsAndConditions: () -> Unit,
+    toTripList: () -> Unit,
+    toUserSettings: () -> Unit,
+    onLogOutClick:  () -> Unit,
+    isLoggedIn: Boolean
     ) {
     //val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     val scope = rememberCoroutineScope()
-    val idkForNow = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val forAllOptions = rememberDrawerState(initialValue = DrawerValue.Closed)
     val userOptions = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     // 2. El contenedor principal que permite el deslizamiento lateral
@@ -53,41 +89,56 @@ fun MainPage(
         drawerContent = {
             // contenido que aparece dentro del menú
             ModalDrawerSheet {
-                Text("Opciones sin iniciar session", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
-                HorizontalDivider()
-                NavigationDrawerItem(
-                    label = { Text("Registrar-se") },
-                    selected = false,
-                    onClick = toSignIn,
-                )
-                NavigationDrawerItem(
-                    label = { Text("Iniciar session") },
-                    selected = false,
-                    onClick = toLogIn,
-                )
-                HorizontalDivider()
-                Text("Opciones de usuario", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
-                HorizontalDivider()
-                NavigationDrawerItem(
-                    label = { Text("Ajustes de usuario") },
-                    selected = false,
-                    onClick = toUserSettings,
-                )
-                NavigationDrawerItem(
-                    label = { Text("Preferencias (dudas)") },
-                    selected = false,
-                    onClick = toPreferences,
-                )
-                NavigationDrawerItem(
-                    label = { Text("Lista de viajes") },
-                    selected = false,
-                    onClick = toTripList,
-                )
+                if(!isLoggedIn)
+                {
+                    Text("Opciones sin iniciar session", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text("Registrar-se") },
+                        selected = false,
+                        onClick = toSignIn,
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Iniciar session") },
+                        selected = false,
+                        onClick = toLogIn,
+                    )
+                    HorizontalDivider()
+                }else
+                {
+                    Text("Opciones de usuario", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text("Ajustes de usuario") },
+                        selected = false,
+                        onClick = toUserSettings,
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Preferencias (dudas)") },
+                        selected = false,
+                        onClick = toPreferences,
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Lista de viajes") },
+                        selected = false,
+                        onClick = toTripList,
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Cerrar Session") },
+                        selected = false,
+                        onClick = {
+                            onLogOutClick()
+                            coroutineScope.launch {
+                                userOptions.close()
+                            }
+                        },
+                    )
+                }
             }
         },
     ){
         ModalNavigationDrawer(
-            drawerState = idkForNow,
+            drawerState = forAllOptions,
             drawerContent = {
                 // Este es el contenido que aparece DENTRO del menú
                 ModalDrawerSheet {
@@ -114,7 +165,7 @@ fun MainPage(
                         navigationIcon = {
                             IconButton(onClick = {
                                 // Abrir el menú de forma asíncrona
-                                scope.launch { idkForNow.open() }
+                                scope.launch { forAllOptions.open() }
                             }) {
                                 Icon(
                                     imageVector = Icons.Filled.Menu,
@@ -153,14 +204,16 @@ fun MainPage(
 private fun preview()
 {
     GoAndBeTheme {
-        MainPage (
+        MainPageContent(
             toAboutUs = {},
             toLogIn = {},
             toPreferences = {},
             toSignIn = {},
             toTermsAndConditions = {},
             toTripList = {},
-            toUserSettings = {}
+            toUserSettings = {},
+            onLogOutClick = {},
+            isLoggedIn = false
         )
     }
 }

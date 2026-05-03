@@ -20,9 +20,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.github.hilican.goandbe.data.ItineraryItem
+import com.github.hilican.goandbe.data.TripWithItinerary
+import com.github.hilican.goandbe.domain.mockTripWithItinerary
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
-import com.github.hilican.goandbe.domain.Trip
-import com.github.hilican.goandbe.domain.mockTrip
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import kotlin.Int
 
@@ -33,14 +34,17 @@ fun ItineraryScreen(
     onBack: () -> Unit
 ) {
     val tripList by viewModel.tripList.collectAsState()
-    val trip = tripList.find { it.id == tripId }
+    val trip = tripList.find { it.trip.tripId == tripId }
 
     // Llamamos al contenido puro
     ItineraryContent(
-        trip = trip,
+        item = trip,
         onBack = onBack,
-        onDeleteActivity = { activityId ->
-            viewModel.deleteActivityFromTrip(tripId = tripId, activityId = activityId)
+        onDeleteActivity = { activity ->
+            viewModel.deleteActivity(
+                tripId = tripId, // Ojo: si en el ViewModel sigue como String, cámbialo a Int
+                activity = activity
+            )
         }
     )
 }
@@ -48,12 +52,12 @@ fun ItineraryScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItineraryContent(
-    trip: Trip?, // Recibe el viaje ya buscado o null si está cargando
+    item: TripWithItinerary?, // Recibe el viaje ya buscado o null si está cargando
     onBack: () -> Unit,
-    onDeleteActivity: (Int) -> Unit // Callback para borrar
+    onDeleteActivity: (ItineraryItem) -> Unit // Callback para borrar
 ) {
     // Si el viaje es null, mostramos la carga
-    if (trip == null) {
+    if (item == null) {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -67,7 +71,9 @@ fun ItineraryContent(
             }
         ) { padding ->
             Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
                 Text("Cargando detalles del viaje...")
@@ -80,7 +86,7 @@ fun ItineraryContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(trip.name) },
+                title = { Text(item.trip.name) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
@@ -92,7 +98,7 @@ fun ItineraryContent(
         // ... Todo tu código de LazyColumn y trip.activities
         // IMPORTANTE: Donde antes llamabas a viewModel.deleteActivity...
         // ahora llamas a onDeleteActivity(activity.id)
-        if (trip.activities.isEmpty()) {
+        if (item.activities.isEmpty()) {
             // Pantalla vacía si no hay actividades
             Box(
                 modifier = Modifier
@@ -114,11 +120,11 @@ fun ItineraryContent(
                     .padding(padding)
             ) {
                 // Ordenamos las actividades cronológicamente
-                items(trip.activities.sortedBy { it.activityTime }) { activity ->
+                items(item.activities.sortedBy { it.activityTime }) { activity ->
                     ActivityItem(
                         activity = activity,
                         onDeleteClick = {
-                            onDeleteActivity(activity.id)
+                            onDeleteActivity(activity)
                         }
                     )
                 }
@@ -131,11 +137,10 @@ fun ItineraryContent(
 @Composable
 private fun preview() {
     GoAndBeTheme {
-        // Creamos un objeto de prueba
         ItineraryContent(
-            trip = mockTrip,
+            item = mockTripWithItinerary,
             onBack = { },
-            onDeleteActivity = { }
+            onDeleteActivity = {}
         )
     }
 }

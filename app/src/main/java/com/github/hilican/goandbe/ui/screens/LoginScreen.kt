@@ -9,19 +9,47 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
+import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
+
 
 @Composable
 fun LoginScreen(
+    viewModel: AuthViewModel,
     onBack: () -> Unit,
+    onNavigateToHome: () -> Unit
 ) {
-    // 1. State for the input fields
+    LaunchedEffect(Unit) {
+        viewModel.clearError()
+    }
+    // Aquí conectamos el ViewModel con la UI
+    LoginContent(
+        errorMsg = viewModel.errorMessage,
+        isLoading = viewModel.isLoading,
+        onLoginClick = { email, pass ->
+            viewModel.login(email, pass) { onNavigateToHome() }
+        },
+        onBack = onBack
+    )
+}
+
+@Composable
+fun LoginContent(
+    errorMsg: String?,
+    isLoading: Boolean,
+    onLoginClick: (String, String) -> Unit,
+    onBack: () -> Unit
+) {
+    // AQUÍ VA TODO TU DISEÑO (Column, TextFields, Buttons...)
+    // Usa los parámetros emailError e isLoading en lugar de llamar al viewModel
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -70,14 +98,21 @@ fun LoginScreen(
         // 4. Login Button
         Button(
             onClick = {
-                TODO("Implement authentication logic and navigation")
+                // Usamos el "viewModel" que viene por parámetro
+                onLoginClick(email,password)
             },
+            enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
             Text("Log In", fontSize = 18.sp)
         }
+        // Si hay error, lo mostramos
+        errorMsg?.let {
+            Text(text = it, color = Color.Red)
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // 5. Return Button
@@ -85,6 +120,7 @@ fun LoginScreen(
             onClick = {
                 onBack()
             },
+            enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
@@ -96,9 +132,13 @@ fun LoginScreen(
 
 @Preview(showBackground = true)
 @Composable
-private fun preview()
-{
+private fun preview() {
     GoAndBeTheme {
-        LoginScreen(onBack = {} )
+        LoginContent(
+            errorMsg = null,
+            isLoading = false,
+            onLoginClick = { email, pass -> },
+            onBack = {}
+        )
     }
 }

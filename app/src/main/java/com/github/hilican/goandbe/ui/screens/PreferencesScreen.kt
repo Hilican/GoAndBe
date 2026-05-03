@@ -10,8 +10,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,10 +35,14 @@ fun PreferencesScreen(
     val savedThemes = remember {
         sharedPreferences.getString("saved_themes", "") ?: String()
     }
+    val savedDarkMode = remember {
+        sharedPreferences.getBoolean("dark_model", true)
+    }
 
     var expanded by remember { mutableStateOf(false) }
     var notifications by remember { mutableStateOf(savedNotifications) }
     var selectedLanguage by remember { mutableStateOf(savedLanguage) }
+    var darkMode by remember { mutableStateOf(savedDarkMode) }
     var theme by remember { mutableStateOf(savedThemes) }
 
     Column(
@@ -53,7 +59,30 @@ fun PreferencesScreen(
         )
 
         Spacer(modifier = Modifier.height(32.dp))
+        // --- Fila de Dark Mode ---
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(text = "Dark Mode", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = if (darkMode) "Enabled" else "Disabled",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
 
+            Switch(
+                checked = darkMode,
+                onCheckedChange = { darkMode = it }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
         // 2. The Notification Row
         Row(
             modifier = Modifier
@@ -162,5 +191,14 @@ fun PreferencesScreen(
         ) {
             Text("Return", fontSize = 18.sp)
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun preview() {
+    GoAndBeTheme {
+        // Creamos un objeto de prueba
+        PreferencesScreen(onBack = {})
     }
 }
