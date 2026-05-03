@@ -3,7 +3,6 @@ package com.github.hilican.goandbe.data
 import com.github.hilican.goandbe.domain.*
 import java.util.Date
 
-
 object FakeTripDataSource {
     private val trips = mutableListOf<Trip>(
         Trip(
