@@ -39,7 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.hilican.goandbe.data.Trip
 import com.github.hilican.goandbe.data.TripWithItinerary
-import com.github.hilican.goandbe.domain.mockTripWithItinerary
+import com.github.hilican.goandbe.data.mockTripWithItinerary
 import com.github.hilican.goandbe.ui.screens.VerticalGap
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import java.util.Date

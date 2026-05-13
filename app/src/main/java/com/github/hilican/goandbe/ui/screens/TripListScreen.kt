@@ -1,7 +1,5 @@
 package com.github.hilican.goandbe.ui.screens
 
-import android.icu.text.SimpleDateFormat
-import android.icu.util.TimeZone
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -25,15 +22,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.github.hilican.goandbe.data.Trip
 import com.github.hilican.goandbe.data.TripWithItinerary
-import com.github.hilican.goandbe.domain.mockListTrips
-import com.github.hilican.goandbe.domain.mockTripWithItinerary
-import java.util.Date
-import java.util.Locale
+import com.github.hilican.goandbe.data.mockListTrips
 
 import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.*
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme

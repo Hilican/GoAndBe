@@ -2,18 +2,17 @@ package com.github.hilican.goandbe.ui.viewmodels
 
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.github.hilican.goandbe.data.UserDao
-import com.github.hilican.goandbe.domain.TripRepository
+import com.github.hilican.goandbe.data.repositories.AuthRepository
+import com.github.hilican.goandbe.data.repositories.TripRepository
 
 object AppViewModelProvider {
-    fun factory(userDao: UserDao, repository: TripRepository) = viewModelFactory {
-        // Aquí defines cómo se construye el AuthViewModel
+    fun factory(repository1: AuthRepository, repository2: TripRepository) = viewModelFactory {
         initializer {
-            AuthViewModel(userDao = userDao)
+            AuthViewModel(repository = repository1)
         }
 
         initializer {
-            TripListViewModel(repository = repository)
+            TripListViewModel(repository = repository2)
         }
     }
 }

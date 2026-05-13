@@ -5,172 +5,81 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.hilican.goandbe.data.UserDao
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 import com.github.hilican.goandbe.data.User
+import com.github.hilican.goandbe.domain.DTO.UserRegistrationRequest
+import com.github.hilican.goandbe.domain.IAuthRepository
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.stateIn
 
-class AuthViewModel(private val userDao: UserDao) : ViewModel() {
-    private val auth = FirebaseAuth.getInstance()
+class AuthViewModel(private val repository: IAuthRepository) : ViewModel() {
+    private val _uiState = MutableStateFlow<UiState<User>>(UiState.Idle)
+    val uiState: StateFlow<UiState<User>> = _uiState
 
-    val isUserLoggedIn: Boolean
-        get() = auth.currentUser != null
+    //IsLogged should be true when user has a token, it updates automatically
+    val isLogged: StateFlow<Boolean> = repository.getLogState()
+        .stateIn(
+            scope = viewModelScope, // por lo que entiendo la ata a la app, se muere si se cierra la app
+            started = SharingStarted.WhileSubscribed(5000), // Despues de 5s sin que se este mirando la pantalla se "apaga"
+            initialValue = repository.isLogged()
+        )
 
-    var isLoading by mutableStateOf(false)
-        private set // Solo el ViewModel puede modificarlo
 
-    var errorMessage by mutableStateOf<String?>(null)
-        private set
-
-    // Variable de estado que la UI observará
-    var currentUserData by mutableStateOf<User?>(null)
-        private set
-
-    // Lógica de Login
-    fun login(email: String, password: String, onSuccess: () -> Unit) {
-        // Validación básica (opcional, pero recomendada)
-        if (email.isBlank() || password.isBlank()) {
-            errorMessage = "Por favor, rellena todos los campos"
-            return
-        }
-
-        executeAuthAction(onSuccess = onSuccess) {
-            auth.signInWithEmailAndPassword(email, password)
-        }
+    sealed class UiState<out T> {
+        object Idle : UiState<Nothing>()
+        object Loading : UiState<Nothing>()
+        data class Success(val user: User) : UiState<Nothing>()
+        data class Error(val message: String) : UiState<Nothing>()
     }
 
-    fun logout() {
-        auth.signOut()
-    }
-
-    // Lógica de SignUp
-    fun signIn(email: String, password: String, username: String, onSuccess: () -> Unit) {
-        if (password.length < 6) {
-            errorMessage = "La contraseña debe tener al menos 6 caracteres"
-            return
-        }
-
+    fun signUp(username: String, email: String, pass: String, dob: Long) {
         viewModelScope.launch {
-            // Buscamos si los datos UNICOS ya existe en Room antes de ir a Firebase
-            val existingUser = userDao.getUserByUsername(username)
+            _uiState.value = UiState.Loading
 
-            if (existingUser != null) {
-                errorMessage = "Este nombre de usuario ya está en uso"
-                return@launch // Frenamos aquí, no se ejecuta nada más
-            }
-
-            // Si los datos UNICOS están libres, procedemos con Firebase
-            executeAuthAction(
-                onSuccess = {
-                    viewModelScope.launch {
-                        try {
-                            val uid = auth.currentUser?.uid ?: return@launch
-                            val nuevoUsuario = User(userId = uid, email = email, username = username)
-
-                            userDao.insertUser(nuevoUsuario)
-                            isLoading = false
-                            onSuccess()
-                        } catch (e: Exception) {
-                            // Este catch ahora es casi imposible que salte, pero es bueno tenerlo
-                            isLoading = false
-                            errorMessage = "Error inesperado al guardar el perfil"
-                        }
-                    }
-                }
-            ) {
-                auth.createUserWithEmailAndPassword(email, password)
-            }
-        }
-    }
-
-    // De momento lo ignoro
-    fun sendPasswordReset(email: String, onSuccess: () -> Unit) {
-        if (email.isBlank()) {
-            errorMessage = "Introduce tu email para enviarte el enlace"
-            return
-        }
-        executeAuthAction(onSuccess){auth.sendPasswordResetEmail(email)}
-    }
-    private fun executeAuthAction(
-        onSuccess: (() -> Unit)? = null,
-        action: () -> com.google.android.gms.tasks.Task<*>,
-    ) {
-        isLoading = true
-        errorMessage = null
-
-        // Ejecutamr la acción
-        action().addOnCompleteListener { task ->
-            isLoading = false
-            if (task.isSuccessful) {
-                if (onSuccess != null) {
-                    onSuccess()
-                } else {
-                    isLoading = false
-                }
-            }else {
-                isLoading = false
-                errorMessage = task.exception?.localizedMessage ?: "Error inesperado"
-            }
-        }
-    }
-
-    fun updateProfile(newUsername: String, newDob: Long, onComplete: () -> Unit) {
-        val uid = auth.currentUser?.uid
-        val email = auth.currentUser?.email
-
-        // Validamos que el usuario esté logueado (importante para que no salga en silencio)
-        if (uid == null || email == null) {
-            errorMessage = "Error: No hay sesión iniciada."
-            return
-        }
-
-        viewModelScope.launch {
-            isLoading = true
             try {
-                val updatedUser = User(
-                    userId = uid,
-                    email = email,
-                    username = newUsername,
-                    dateOfBirth = newDob
-                )
-                userDao.updateUser(updatedUser) // Al tener el mismo ID, Room lo sobrescribirá (REPLACE)
-                errorMessage = null
-                onComplete()
-            } catch (e: Exception) {
-                errorMessage = "Error al actualizar el perfil"
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-
-    fun fetchUserData() {
-        // Obtenemos el ID del usuario que tiene la sesión iniciada en Firebase
-        val uid = auth.currentUser?.uid
-
-        if (uid != null) {
-            viewModelScope.launch {
-                isLoading = true
-                try {
-                    // Llamamos a Room
-                    val user = userDao.getUserById(uid)
-
-                    // Actualizamos el estado
-                    currentUserData = user
-                } catch (e: Exception) {
-                    errorMessage = "Error al cargar datos locales: ${e.localizedMessage}"
-                } finally {
-                    isLoading = false
+                if (repository.getUserByUsername(username) != null) {
+                    _uiState.value = UiState.Error("El nombre de usuario ya existe")
+                    return@launch
                 }
+
+                if (repository.getUserByEmail(email) != null) {
+                    _uiState.value = UiState.Error("El email ya está registrado")
+                    return@launch
+                }
+
+                val request = UserRegistrationRequest(username, email, pass, dob)
+                val result = repository.signUp(request)
+                _uiState.value = result.fold(
+                    onSuccess = { user -> UiState.Success(user) },
+                    onFailure = { error -> UiState.Error(error.message ?: "Error desconocido") }
+                )
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error("Error inesperado: ${e.message}")
             }
-        } else {
-            // Si no hay sesión, limpiamos los datos
-            currentUserData = null
         }
     }
 
-    fun clearError() {
-        errorMessage = null
+    fun singIn(email: String, password: String)
+    {
+
+    }
+
+    fun logOut()
+    {
+        repository.logOut()
+    }
+
+
+    suspend fun updateUser(username: String, dob: Long)
+    {
+
     }
 }

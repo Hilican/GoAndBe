@@ -9,12 +9,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.github.hilican.goandbe.data.AppDatabase
-import com.github.hilican.goandbe.domain.TripRepository
+import com.github.hilican.goandbe.data.repositories.AuthRepository
+import com.github.hilican.goandbe.data.repositories.TripRepository
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.screens.*
 import com.github.hilican.goandbe.ui.viewmodels.AppViewModelProvider
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +44,10 @@ class MainActivity : ComponentActivity() {
 fun TravelerAppNavigation(db: AppDatabase) {
     val navController = rememberNavController()
 
-    val factory = AppViewModelProvider.factory(db.userDao(), TripRepository(db.tripDao()))
+    val factory = AppViewModelProvider.factory(
+        AuthRepository(db.userDao(), FirebaseAuth.getInstance() ),
+        TripRepository(db.tripDao())
+    )
 
     val authViewModel: AuthViewModel = viewModel(factory = factory)
     val tripListViewModel: TripListViewModel = viewModel(factory = factory)

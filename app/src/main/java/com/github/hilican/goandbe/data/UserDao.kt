@@ -8,22 +8,24 @@ import androidx.room.Update
 
 @Dao
 interface UserDao {
+    //READ
+    @Query("SELECT * FROM users WHERE userId = :id")
+    suspend fun getUserById(id: String): User?
+
+    @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
+    suspend fun getUserByUsername(username: String): User?
+
+    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    suspend fun getUserByEmail(email: String): User?
     // Insertar un usuario (si el ID ya existe, lanzará error por defecto)
     @Insert
     suspend fun insertUser(user: User)
 
-    // Actualizar para el perfil (¡Esta es la que vas a usar ahora!)
+    // Actualizar para el perfil
     @Update
     suspend fun updateUser(user: User)
 
-    // Obtener un usuario por su ID (útil para el perfil)
-    @Query("SELECT * FROM users WHERE userId = :id")
-    suspend fun getUserById(id: String): User?
-
-    // Borrar un usuario (cuando cierre sesión o borre cuenta)
+    // Borrar un usuario
     @Delete
     suspend fun deleteUser(user: User)
-
-    @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
-    suspend fun getUserByUsername(username: String): User?
 }

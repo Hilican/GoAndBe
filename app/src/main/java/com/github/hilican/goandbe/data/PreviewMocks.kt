@@ -1,8 +1,4 @@
-package com.github.hilican.goandbe.domain
-
-import com.github.hilican.goandbe.data.ItineraryItem
-import com.github.hilican.goandbe.data.Trip
-import com.github.hilican.goandbe.data.TripWithItinerary
+package com.github.hilican.goandbe.data
 
 val mockTrip = Trip(
     tripId = 1,

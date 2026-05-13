@@ -6,7 +6,7 @@ import com.github.hilican.goandbe.data.ItineraryItem
 import com.github.hilican.goandbe.data.Trip
 import com.github.hilican.goandbe.data.TripWithItinerary
 import kotlinx.coroutines.flow.StateFlow
-import com.github.hilican.goandbe.domain.*
+import com.github.hilican.goandbe.data.repositories.TripRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -73,25 +73,22 @@ class TripListViewModel(private val repository: TripRepository) : ViewModel()
 
     fun deleteActivity(tripId: Int, activity: ItineraryItem) {
         viewModelScope.launch {
-            // 1. Borramos la actividad de su tabla
+            // Borramos la actividad de su tabla
             repository.deleteActivity(activity)
 
-            // 2. Buscamos el viaje para actualizar su coste total
+            // Buscamos el viaje para actualizar su coste total
             val existingTrip = repository.getTripById(tripId)
 
             existingTrip?.let { trip ->
-                // 3. Restamos el coste de la actividad eliminada
+                // Restamos el coste de la actividad eliminada
                 val updatedTotalCost = (trip.totalCost - activity.costEstimate).coerceAtLeast(0L)
 
                 val updatedTrip = trip.copy(
                     totalCost = updatedTotalCost
                 )
 
-                // 4. Guardamos el viaje actualizado
                 repository.editTrip(updatedTrip)
             }
-
-            // La UI se actualizará sola gracias al Flow
         }
     }
 
