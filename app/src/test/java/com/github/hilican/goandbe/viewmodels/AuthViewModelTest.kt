@@ -5,6 +5,7 @@ import com.github.hilican.goandbe.data.User
 import com.github.hilican.goandbe.domain.Address
 import com.github.hilican.goandbe.domain.DTO.UserRegistrationRequest
 import com.github.hilican.goandbe.domain.IAuthRepository
+import com.github.hilican.goandbe.domain.UserMock
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -39,43 +40,26 @@ class AuthViewModelTest {
         // GIVEN
         val username = "testUser"
         // 1. Necesitamos una dirección válida para que supere la validación local .validate()
-        val validAddress = Address(
-            street = "Calle Mayor 15",
-            city = "Madrid",
-            state = "Madrid",
-            zipCode = "28013",
-            country = "España"
-        )
-
         val userInfoRequest = UserRegistrationRequest(
-            username = username,
-            email = "test@test.com",
+            username = UserMock.mockUser.username,
+            email = UserMock.mockUser.email,
             password = "password123",
-            dateOfBirth = 123456789L,
-            address = validAddress,
-            phoneNumber = "600112233",
-            receiveEmails = false
+            dateOfBirth = UserMock.mockUser.dateOfBirth,
+            address = UserMock.mockAddress,
+            phoneNumber = UserMock.mockUser.phoneNumber,
+            receiveEmails = UserMock.mockUser.receiveEmails
         )
 
-        val existingUser = User(
-            userId = "1",
-            email = "test@test.com",
-            username = username,
-            dateOfBirth = 123456789L,
-            createdAt = System.currentTimeMillis(),
-            address = validAddress,
-            phoneNumber = "600112233",
-            receiveEmails = false,
-        )
+        coEvery { repository.getUserByUsername(UserMock.mockUser.username) } returns UserMock.mockUser
 
-        coEvery { repository.getUserByUsername(username) } returns existingUser
         // WHEN
         viewModel.signUp(userInfoRequest)
 
         // THEN
         val state = viewModel.uiState.value
-        assert(state is AuthViewModel.UiState.Error)
-        assert((state as AuthViewModel.UiState.Error).message == "El nombre de usuario ya existe")
+        assert(state.errorMessage == "El nombre de usuario ya existe")
+        assert(!state.isLoading)
+        assert(state.user == null)
 
         // Verificamos que NUNCA se llamó al registro real
         coVerify(exactly = 0) { repository.signUp(any()) }
@@ -84,49 +68,31 @@ class AuthViewModelTest {
     @Test
     fun `signUp - cuando el registro es exitoso, actualiza a Success`() = runTest {
         // GIVEN
-        // 1. Creamos una dirección válida para superar .validate()
-        val validAddress = Address(
-            street = "Calle Mayor 15",
-            city = "Madrid",
-            state = "Madrid",
-            zipCode = "28013",
-            country = "España"
-        )
-
-        // 2. Creamos el objeto Request completo con datos que pasen los filtros .isBlank()
         val userInfoRequest = UserRegistrationRequest(
-            username = "newGuy",
-            email = "new@test.com",
+            username = UserMock.mockUser.username,
+            email = UserMock.mockUser.email,
             password = "password123",
-            dateOfBirth = 101010L,
-            address = validAddress,
-            phoneNumber = "600112233",
-            receiveEmails = false
+            dateOfBirth = UserMock.mockUser.dateOfBirth,
+            address = UserMock.mockAddress,
+            phoneNumber = UserMock.mockUser.phoneNumber,
+            receiveEmails = UserMock.mockUser.receiveEmails
         )
 
-        // 3. Adaptamos el usuario esperado a la estructura actual de tu entidad User de Room
-        val expectedUser = User(
-            userId = "1",
-            email = "new@test.com",
-            username = "newGuy",
-            dateOfBirth = 101010L,
-            createdAt = System.currentTimeMillis(),
-            address = validAddress,
-            phoneNumber = "600112233",
-            receiveEmails = false
-        )
-
-        // Simulamos que el usuario y el email están libres, y que el registro devuelve un Result exitoso
+        // Simulamos que el usuario y el email están libres en el sistema
         coEvery { repository.getUserByUsername(any()) } returns null
         coEvery { repository.getUserByEmail(any()) } returns null
-        coEvery { repository.signUp(any()) } returns Result.success(expectedUser)
+        // Simulamos que el registro en el servidor devuelve con éxito nuestro usuario mockeado
+        coEvery { repository.signUp(any()) } returns Result.success(UserMock.mockUser)
 
         // WHEN - Invocamos la función con el objeto Request
         viewModel.signUp(userInfoRequest)
 
         // THEN
         val state = viewModel.uiState.value
-        assert(state is AuthViewModel.UiState.Success)
-        assert((state as AuthViewModel.UiState.Success).user == expectedUser)
+
+
+        assert(state.user == UserMock.mockUser)
+        assert(state.errorMessage == null)
+        assert(!state.isLoading)
     }
 }
