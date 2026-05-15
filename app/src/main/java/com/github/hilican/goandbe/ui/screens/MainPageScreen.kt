@@ -1,9 +1,13 @@
 package com.github.hilican.goandbe.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -17,22 +21,19 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -112,14 +113,9 @@ fun MainPageContent(
                     Text("Opciones de usuario", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
                     HorizontalDivider()
                     NavigationDrawerItem(
-                        label = { Text("Ajustes de usuario") },
+                        label = { Text("Informacion del usuario") },
                         selected = false,
                         onClick = toUserSettings,
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Lista de viajes") },
-                        selected = false,
-                        onClick = toTripList,
                     )
                     NavigationDrawerItem(
                         label = { Text("Cerrar Session") },
@@ -189,13 +185,44 @@ fun MainPageContent(
                     )
                 },
                 bottomBar = {
-                    BottomAppBar {
-                        Text(text = "Abajo")
+                    if (isLoggedIn) {
+                        BottomAppBar {
+                            // 1. Empuja el botón hacia la derecha desde el inicio
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            // 2. Tu botón centrado
+                            IconButton(onClick = toTripList) {
+                                Icon(
+                                    imageVector = Icons.Default.DateRange, // Cambiar por Icons.Default.Flight si prefieres el avión
+                                    contentDescription = "Mis Viajes"
+                                )
+                            }
+
+                            // 3. Empuja el botón hacia la izquierda desde el final
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 },
             ) { padding ->
-                Column(modifier.padding(padding)) {
-                    Text(text = "contenido")
+                val mensajeBienvenida = if (isLoggedIn) {
+                    "Bienvenido de nuevo"
+                } else {
+                    "Por favor\n regístrese o inicie sesión"
+                }
+
+                Column(
+                    modifier = modifier
+                        .fillMaxSize() // 1. Obligatorio para que la columna ocupe toda la pantalla y pueda centrar
+                        .padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally, // 2. Centra el contenido horizontalmente (izquierda-derecha)
+                    verticalArrangement = Arrangement.Center           // 3. Centra el contenido verticalmente (arriba-abajo)
+                ) {
+                    Text(
+                        text = mensajeBienvenida,
+                        style = MaterialTheme.typography.headlineMedium, // 4. Hace el texto bastante más grande
+                        textAlign = TextAlign.Center, // Centra el párrafo por si el texto ocupa dos líneas en pantallas pequeñas
+                        modifier = Modifier.padding(horizontal = 24.dp) // Margen de seguridad a los lados
+                    )
                 }
             }
         }
@@ -216,7 +243,7 @@ private fun preview()
             toTripList = {},
             toUserSettings = {},
             onLogOutClick = {},
-            isLoggedIn = false
+            isLoggedIn = true
         )
     }
 }

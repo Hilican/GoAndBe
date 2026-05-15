@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -175,6 +176,18 @@ class AuthRepository @Inject constructor (private val userDao: UserDao, private 
             Result.failure(e)
         }
 
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+    {
+        return try {
+            FirebaseAuth.getInstance().sendPasswordResetEmail(email).await()
+            // Si llega aquí, es que ha ido bien
+            Result.success(Unit)
+        } catch (e: Exception) {
+            // Si Firebase devuelve un error (ej. email no existe)
+            Result.failure(e)
+        }
     }
 
     private fun UserRegistrationRequest.toEntity(firebaseId: String): User {

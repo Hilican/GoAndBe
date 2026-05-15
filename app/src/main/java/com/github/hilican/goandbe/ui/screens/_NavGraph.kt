@@ -27,6 +27,7 @@ fun NavGraph(
                 toTripList = { navController.navigate(TripListScreenRoute) },
                 toMainPage = { navController.navigate(MainPageScreenRoute) },
                 toUserSettings = { navController.navigate(UserSettingsRoute) },
+                toForgottenPassword = { navController.navigate(ForgottenPasswordRoute) },
             )
         }
         composable<AboutUsRoute> {
@@ -38,7 +39,8 @@ fun NavGraph(
             LoginScreen(
                 viewModel = authViewModel,
                 onBack = { navController.popBackStack() },
-                onNavigateToHome = { navController.navigate(MainPageScreenRoute)}
+                onNavigateToHome = { navController.navigate(MainPageScreenRoute) },
+                goToForgottenPassword = { navController.navigate(ForgottenPasswordRoute) }
             )
         }
         composable<PreferencesRoute> {
@@ -71,7 +73,12 @@ fun NavGraph(
                 onBack = { navController.popBackStack() }
             )
         }
-
+        composable<ForgottenPasswordRoute> {
+            ForgottenPasswordScreen(
+                viewModel = authViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
         composable<MainPageScreenRoute> {
             MainPage(
                 viewModel = authViewModel,

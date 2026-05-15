@@ -5,14 +5,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,50 +19,57 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
 
-
 @Composable
-fun LoginScreen(
+fun ForgottenPasswordScreen(
     viewModel: AuthViewModel,
-    onBack: () -> Unit,
-    onNavigateToHome: () -> Unit,
-    goToForgottenPassword: () -> Unit,
+    onBack: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    // Limpiamos errores al entrar por primera vez
     LaunchedEffect(Unit) {
         viewModel.clearError()
     }
-    LaunchedEffect(state.isAuthenticated) {
-        if (state.isAuthenticated) {
-            Toast.makeText(context, "Sesión ya activa", Toast.LENGTH_SHORT).show()
-            onNavigateToHome()
+
+    // Escuchamos si Firebase ya envió el correo con éxito
+    LaunchedEffect(state.isPasswordResetSent) {
+        if (state.isPasswordResetSent) {
+            Toast.makeText(
+                context,
+                "Correo de recuperación enviado. Revisa tu bandeja de entrada.",
+                Toast.LENGTH_LONG
+            ).show()
+
+            // 1. Apagamos el interruptor en el ViewModel
+            viewModel.clearPasswordResetSent()
+            // 2. Devolvemos al usuario al Login automáticamente
+            onBack()
         }
     }
 
-    // Aquí conectamos el ViewModel con la UI
-    LoginContent(
+    // Conectamos con la UI limpia
+    ForgottenPasswordContent(
         errorMsg = state.errorMessage,
         isLoading = state.isLoading,
-        onLoginClick = { email, pass ->
-            viewModel.singIn(email, pass)
+        onResetClick = { email ->
+            viewModel.sendPasswordReset(email)
         },
         onBack = onBack,
-        onValueChange = { viewModel.clearError() },
-        goToForgottenPassword = { goToForgottenPassword() }
+        onValueChange = { viewModel.clearError() }
     )
 }
 
+
 @Composable
-fun LoginContent(
+fun ForgottenPasswordContent(
     errorMsg: String?,
     isLoading: Boolean,
-    onLoginClick: (String, String) -> Unit,
+    onResetClick: (String) -> Unit,
     onBack: () -> Unit,
-    onValueChange: () -> Unit = {},
-    goToForgottenPassword: () -> Unit,
+    onValueChange: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -73,14 +79,25 @@ fun LoginContent(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Log In",
+            text = "Recover Password",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Texto informativo de ayuda al usuario
+        Text(
+            text = "Enter your email address below and we will send you a link to reset your password.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 2. Email Field
+        // Campo de Email
         OutlinedTextField(
             value = email,
             onValueChange = {
@@ -94,47 +111,34 @@ fun LoginContent(
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 3. Password Field
-        OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                onValueChange()
-            },
-            label = { Text("Password") },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true
-        )
-
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 4. Login Button
+        // Botón de Enviar Correo
         Button(
-            onClick = { onLoginClick(email, password) },
-            enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
+            onClick = { onResetClick(email) },
+            enabled = !isLoading && email.isNotBlank(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
             if (isLoading) {
-                // El spinner dentro del botón
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
                     color = MaterialTheme.colorScheme.onPrimary,
                     strokeWidth = 2.dp
                 )
             } else {
-                Text("Log In", fontSize = 18.sp)
+                Text("Send Recovery Email", fontSize = 18.sp)
             }
         }
 
-        //Error
-        Box(modifier = Modifier.height(32.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        // Bloque de error idéntico a tu LoginContent
+        Box(
+            modifier = Modifier
+                .height(32.dp)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
             errorMsg?.let {
                 Text(
                     text = it,
@@ -146,17 +150,9 @@ fun LoginContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(
-            onClick = { goToForgottenPassword() },
-            enabled = !isLoading
-        ) {
-            Text("¿Olvidaste tu contraseña?")
-        }
-        // Return Button
+        // Botón de Volver
         Button(
-            onClick = {
-                onBack()
-            },
+            onClick = { onBack() },
             enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
@@ -171,13 +167,11 @@ fun LoginContent(
 @Composable
 private fun preview() {
     GoAndBeTheme {
-        LoginContent(
+        ForgottenPasswordContent(
             errorMsg = null,
             isLoading = false,
-            onLoginClick = { email, pass -> },
-            onBack = {},
-            onValueChange = {},
-            goToForgottenPassword = {}
+            onResetClick = {},
+            onBack = {}
         )
     }
 }

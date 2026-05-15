@@ -21,6 +21,7 @@ fun ToAllScreens(
     toTripList: () -> Unit,
     toMainPage: () -> Unit,
     toUserSettings: () -> Unit,
+    toForgottenPassword: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
@@ -44,6 +45,8 @@ fun ToAllScreens(
         NavigationButton("Terms & Conditions",toTermsAndConditions)
         VerticalGap()
         NavigationButton("About Us",toAboutUs)
+        VerticalGap()
+        NavigationButton("Forgotten password",toForgottenPassword)
     }
 }
 
@@ -61,6 +64,7 @@ private fun preview()
             toTripList = {},
             toMainPage = {},
             toUserSettings = {},
+            toForgottenPassword = {},
         )
     }
 }

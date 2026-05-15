@@ -9,4 +9,5 @@ interface IFirebaseRepository {
     fun getCurrentUserId(): String?
     fun logOut() : Result<Unit>
     suspend fun deleteUserFirebase() : Result<Unit>
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
 }

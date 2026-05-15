@@ -21,7 +21,9 @@ class AuthViewModel @Inject constructor (private val repository: IAuthRepository
         val isLoading: Boolean = true,    // Cargando inicial (true por defecto)
         val isSaving: Boolean = false,    // Cargando al darle a guardar
         val errorMessage: String? = null,  // Errores sueltos
-        val isAuthenticated: Boolean = false
+        val isAuthenticated: Boolean = false,
+        // Para comunicar que se envia, tengo dudas de si dejarlo aqui o hacerlo otra variable.
+        val isPasswordResetSent: Boolean = false,
     )
     private val _uiState = MutableStateFlow(UserUiState()) // Toma los valores por defecto
 
@@ -237,4 +239,33 @@ class AuthViewModel @Inject constructor (private val repository: IAuthRepository
         }
         return true
     }
+    fun sendPasswordReset(email: String) {
+        if (email.isBlank()) {
+            showError("Por favor, introduce tu correo electrónico")
+            return
+        }
+
+        viewModelScope.launch {
+            // Encendemos el cargando y limpiamos estados de recuperación anteriores
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, isPasswordResetSent = false) }
+
+            val result = repository.sendPasswordResetEmail(email)
+
+            result.fold(
+                onSuccess = {
+                    // Apagamos loader y encendemos el aviso de éxito
+                    _uiState.update { it.copy(isLoading = false, isPasswordResetSent = true) }
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    showError(error.message ?: "No se pudo enviar el correo de recuperación")
+                }
+            )
+        }
+    }
+
+    fun clearPasswordResetSent() {
+        _uiState.update { it.copy(isPasswordResetSent = false) }
+    }
+
 }

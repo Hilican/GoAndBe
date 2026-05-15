@@ -28,3 +28,5 @@ object MainPageScreenRoute //AboutUsScreen
 
 @Serializable
 object UserSettingsRoute
+@Serializable
+object ForgottenPasswordRoute
