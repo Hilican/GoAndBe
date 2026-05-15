@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.hilican.goandbe.data.ItineraryItem
 import com.github.hilican.goandbe.data.TripWithItinerary
-import com.github.hilican.goandbe.data.mockTripWithItinerary
+import com.github.hilican.goandbe.domain.TripMocks
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import kotlin.Int
@@ -95,9 +95,6 @@ fun ItineraryContent(
             )
         }
     ) { padding ->
-        // ... Todo tu código de LazyColumn y trip.activities
-        // IMPORTANTE: Donde antes llamabas a viewModel.deleteActivity...
-        // ahora llamas a onDeleteActivity(activity.id)
         if (item.activities.isEmpty()) {
             // Pantalla vacía si no hay actividades
             Box(
@@ -138,7 +135,7 @@ fun ItineraryContent(
 private fun preview() {
     GoAndBeTheme {
         ItineraryContent(
-            item = mockTripWithItinerary,
+            item = TripMocks.mockTripWithItinerary,
             onBack = { },
             onDeleteActivity = {}
         )

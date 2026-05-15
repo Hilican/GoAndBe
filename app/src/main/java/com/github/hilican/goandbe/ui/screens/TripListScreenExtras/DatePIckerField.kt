@@ -31,14 +31,21 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+enum class DatePickerMode {
+    BIRTHDAY, // Hoy o antes
+    TRIP,     // Hoy o después
+    ALL       // Selector normal (Cualquier fecha)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatePickerField(
     label: String,
     selectedDate: Long,
     onDateSelected: (Long) -> Unit,
-    isError: Boolean = true,
-    pastDatesAllowed: Boolean = false,
+    isError: Boolean = false,
+    enabled: Boolean = true,
+    mode: DatePickerMode = DatePickerMode.ALL
 ) {
     var showModal by remember { mutableStateOf(false) }
     val calendar = Calendar.getInstance().apply {
@@ -51,19 +58,18 @@ fun DatePickerField(
     val datePickerState = rememberDatePickerState(
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return if (pastDatesAllowed) {
-                    utcTimeMillis <= today // Para cumpleaños: hoy o antes
-                } else {
-                    utcTimeMillis >= today // Para viajes: hoy o después
+                return when (mode) {
+                    DatePickerMode.BIRTHDAY -> utcTimeMillis <= today
+                    DatePickerMode.TRIP -> utcTimeMillis >= today
+                    DatePickerMode.ALL -> true // Habilita todas las fechas
                 }
             }
 
             override fun isSelectableYear(year: Int): Boolean {
-                // Que no vean años anteriores al actual
-                return if (pastDatesAllowed) {
-                    year <= calendar.get(Calendar.YEAR)
-                } else {
-                    year >= calendar.get(Calendar.YEAR)
+                return when (mode) {
+                    DatePickerMode.BIRTHDAY -> year <= calendar.get(Calendar.YEAR)
+                    DatePickerMode.TRIP -> year >= calendar.get(Calendar.YEAR)
+                    DatePickerMode.ALL -> true // Habilita todos los años
                 }
             }
         }
@@ -93,13 +99,31 @@ fun DatePickerField(
             trailingIcon = {
                 Icon(Icons.Default.DateRange, contentDescription = null)
             },
-            shape = RectangleShape, // Keeping your sharp borders
-            enabled = false, // Prevents keyboard from popping up
+            shape = RectangleShape,
+            enabled = false, // Se mantiene false para que no parpadee el cursor ni el teclado
+
+            // 👈 3. Ajustamos los colores dinámicamente según si está 'enabled' o en 'error'
             colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = if(isError)  MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                disabledLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledBorderColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
-                disabledTrailingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledTextColor = when {
+                    isError -> MaterialTheme.colorScheme.error
+                    !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // Color apagado
+                    else -> MaterialTheme.colorScheme.onSurface
+                },
+                disabledLabelColor = when {
+                    isError -> MaterialTheme.colorScheme.error
+                    !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                disabledBorderColor = when {
+                    isError -> MaterialTheme.colorScheme.error
+                    !enabled -> MaterialTheme.colorScheme.outline.copy(alpha = 0.12f) // Borde muy sutil
+                    else -> MaterialTheme.colorScheme.outline
+                },
+                disabledTrailingIconColor = when {
+                    isError -> MaterialTheme.colorScheme.error
+                    !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
             ),
             isError = isError
         )

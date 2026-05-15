@@ -20,7 +20,7 @@ import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 fun PreferencesScreen(
     onBack: () -> Unit,
 ) {
-    // 1. State for the input fields
+    // State for the input fields
     val languages = listOf("English", "Spanish", "French", "Portuguese", "German")
     val context = LocalContext.current
     val sharedPreferences = remember {
@@ -59,7 +59,7 @@ fun PreferencesScreen(
         )
 
         Spacer(modifier = Modifier.height(32.dp))
-        // --- Fila de Dark Mode ---
+        // The Dark Mode option
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -83,7 +83,7 @@ fun PreferencesScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        // 2. The Notification Row
+        // The Notification option
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,8 +99,6 @@ fun PreferencesScreen(
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
-
-            // The actual Boolean control
             Switch(
                 checked = notifications,
                 onCheckedChange = { notifications = it }
@@ -127,7 +125,7 @@ fun PreferencesScreen(
                     .fillMaxWidth()
             )
 
-            // 3. The actual list of options
+            // list of options
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
@@ -147,7 +145,7 @@ fun PreferencesScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 3. Themes Field
+        // Themes Field
         OutlinedTextField(
             value = theme,
             onValueChange = { theme = it },
@@ -159,7 +157,7 @@ fun PreferencesScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 4. Confirm Changes Button
+        // Confirm Changes Button
         Button(
             onClick = {
                 // Guardamos el idioma seleccionado de forma persistente
@@ -169,8 +167,7 @@ fun PreferencesScreen(
                     .putString("saved_themes", theme)
                     .apply() // .apply() guarda los datos en segundo plano
 
-                // Opcional: Mostramos un pequeño mensaje para confirmar al usuario
-                Toast.makeText(context, "Preferences saved!", Toast.LENGTH_SHORT).show()
+                // t(context, "Preferences saved!", Toast.LENGTH_SHORT).show()
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,7 +177,7 @@ fun PreferencesScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 5. Return Button
+        // Return Button
         Button(
             onClick = {
                 onBack()

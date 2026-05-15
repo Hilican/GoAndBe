@@ -12,19 +12,18 @@ interface ITripRepository {
     suspend fun getTripById(id: Int): Trip?
 
     // CREATE
-    suspend fun addTrip(trip: Trip)
+    suspend fun addTrip(trip: Trip) : Long
 
     // UPDATE
-    suspend fun editTrip(updatedTrip: Trip)
+    suspend fun editTrip(updatedTrip: Trip) : Int
 
     // DELETE
-    suspend fun deleteTrip(trip: Trip)
+    suspend fun deleteTrip(trip: Trip) : Int
 
     // -- FOR ACTIVITIES --
-    suspend fun addActivity(item: ItineraryItem)
+    suspend fun addActivity(item: ItineraryItem) : Long
 
-    suspend fun deleteActivity(item: ItineraryItem)
+    suspend fun deleteActivity(item: ItineraryItem) : Int
 
-    suspend fun updateActivity(item: ItineraryItem)
-
+    suspend fun updateActivity(item: ItineraryItem) : Int
 }

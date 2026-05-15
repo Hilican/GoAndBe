@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.hilican.goandbe.data.ItineraryItem
-import com.github.hilican.goandbe.data.mockActivitie
+import com.github.hilican.goandbe.domain.TripMocks
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -100,7 +100,7 @@ fun ActivityItem(
 private fun preview() {
     GoAndBeTheme {
         ActivityItem(
-            activity = mockActivitie,
+            activity = TripMocks.mockActivitie,
             onDeleteClick = {}
         )
     }

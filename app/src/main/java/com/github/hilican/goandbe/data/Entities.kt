@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.github.hilican.goandbe.domain.Address
 
 @Entity(tableName = "users", indices = [
     Index(value = ["email"], unique = true),
@@ -17,6 +18,11 @@ data class User(
     val username: String,
     val dateOfBirth: Long = 0L,
     val createdAt: Long = System.currentTimeMillis(),
+    // Solucion para poner classes personalizadas, entra a la classe y coge los valores como String, Int....
+    @Embedded(prefix = "address_")
+    val address: Address,
+    val phoneNumber : String,
+    val receiveEmails : Boolean
 )
 
 @Entity(tableName = "trips")

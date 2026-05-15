@@ -22,11 +22,14 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
 import kotlinx.coroutines.coroutineScope
@@ -44,8 +47,7 @@ fun MainPage(
     toUserSettings: () -> Unit,
     viewModel: AuthViewModel,
 ) {
-
-    val isLoggedIn = viewModel.isUserLoggedIn
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     MainPageContent(
         modifier = Modifier,
@@ -57,10 +59,11 @@ fun MainPage(
         toTripList = toTripList,
         toUserSettings = toUserSettings,
         onLogOutClick = { ->
-            viewModel.logout()
+            viewModel.logOut()
         },
-        isLoggedIn = isLoggedIn
+        isLoggedIn = state.isAuthenticated
     )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,11 +117,6 @@ fun MainPageContent(
                         onClick = toUserSettings,
                     )
                     NavigationDrawerItem(
-                        label = { Text("Preferencias (dudas)") },
-                        selected = false,
-                        onClick = toPreferences,
-                    )
-                    NavigationDrawerItem(
                         label = { Text("Lista de viajes") },
                         selected = false,
                         onClick = toTripList,
@@ -144,6 +142,11 @@ fun MainPageContent(
                 ModalDrawerSheet {
                     Text("Menú Principal", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
                     HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text("Preferencias") },
+                        selected = false,
+                        onClick = toPreferences,
+                    )
                     NavigationDrawerItem(
                         label = { Text("Terminos & Condiciones") },
                         selected = false,

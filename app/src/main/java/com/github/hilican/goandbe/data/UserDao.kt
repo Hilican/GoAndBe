@@ -19,13 +19,13 @@ interface UserDao {
     suspend fun getUserByEmail(email: String): User?
     // Insertar un usuario (si el ID ya existe, lanzará error por defecto)
     @Insert
-    suspend fun insertUser(user: User)
+    suspend fun insertUser(user: User) : Long // <-- Devuelve positivo si salio bien, -1 si ha habido error
 
     // Actualizar para el perfil
     @Update
-    suspend fun updateUser(user: User)
+    suspend fun updateUser(user: User) : Int // <-- Devuelve numero de filas modificadas
 
     // Borrar un usuario
     @Delete
-    suspend fun deleteUser(user: User)
+    suspend fun deleteUser(user: User) : Int // <-- Devuelve numero de filas modificadas
 }

@@ -7,10 +7,9 @@ interface IUserRepository {
     suspend fun getUserById(userId: String): User?
     suspend fun getUserByEmail(email: String): User?
     // CREATE
-    suspend fun saveUserLocally(user: User)
+    suspend fun saveUserLocally(user: User) : Long
     // UPDATE
-    suspend fun updateUserLocally(updatedUser: User)
-
+    suspend fun updateUserLocally(updatedUser: User) : Int
     // DELETE
-    suspend fun deleteUserLocally(user: User)
+    suspend fun deleteUserLocally(user: User) : Int
 }

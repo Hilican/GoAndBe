@@ -50,6 +50,7 @@ fun NavGraph(
             UserInfoScreen(
                 viewModel = authViewModel,
                 onBack = { navController.popBackStack() },
+                onNavigateToHome = { navController.navigate(MainPageScreenRoute)}
             )
         }
         composable<SignInRoute> {

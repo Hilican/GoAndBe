@@ -39,7 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.hilican.goandbe.data.Trip
 import com.github.hilican.goandbe.data.TripWithItinerary
-import com.github.hilican.goandbe.data.mockTripWithItinerary
+import com.github.hilican.goandbe.domain.TripMocks
 import com.github.hilican.goandbe.ui.screens.VerticalGap
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import java.util.Date
@@ -194,7 +194,7 @@ fun AddActivityDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Campo 1: String (Descripción)
+                // Campo 1 Descripción
                 OutlinedTextField(
                     value = description,
                     onValueChange = {
@@ -209,7 +209,7 @@ fun AddActivityDialog(
                     }
                 )
 
-                // Campo 2: Fecha (Usando tu DatePickerField personalizado)
+                // Campo 2 Fecha
                 DatePickerField(
                     label = "Día de la actividad",
                     selectedDate = dateMillis,
@@ -217,7 +217,7 @@ fun AddActivityDialog(
                         dateMillis = it
                         dateErrorMessage = null
                     },
-                    isError = dateErrorMessage != null
+                    isError = dateErrorMessage != null,
                 )
 
                 if (dateErrorMessage != null) {
@@ -229,7 +229,7 @@ fun AddActivityDialog(
                     )
                 }
 
-                // Campo 3: Int (Coste)
+                // Campo 3 (Coste)
                 OutlinedTextField(
                     value = costText,
                     onValueChange = {
@@ -298,7 +298,7 @@ private fun TripItemClosedPreview() {
     GoAndBeTheme {
         // Usamos el mockTrip que definimos antes
         TripItem(
-            tripWithItinerary = mockTripWithItinerary,
+            tripWithItinerary = TripMocks.mockTripWithItinerary,
             onDeleteClick = {},
             onAddActivityConfirm = { _, _, _ -> },
             onViewActivitiesClick = {}

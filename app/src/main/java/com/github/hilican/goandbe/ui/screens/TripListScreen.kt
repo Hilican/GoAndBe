@@ -26,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.github.hilican.goandbe.data.Trip
 import com.github.hilican.goandbe.data.TripWithItinerary
-import com.github.hilican.goandbe.data.mockListTrips
+import com.github.hilican.goandbe.domain.TripMocks
 
 import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.*
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
@@ -203,6 +203,7 @@ fun CreateTripDialog(
                         date1ErrorMessage = null
                     },
                     isError = date1ErrorMessage != null,
+                    mode = DatePickerMode.TRIP
                 )
 
                 if (date1ErrorMessage != null) {
@@ -222,6 +223,7 @@ fun CreateTripDialog(
                         date2ErrorMessage = null
                         },
                     isError = date2ErrorMessage != null,
+                    mode = DatePickerMode.TRIP
                 )
 
                 if (date2ErrorMessage != null) {
@@ -285,7 +287,7 @@ fun CreateTripDialog(
 private fun TripListPreview() {
     GoAndBeTheme {
         TripListContent(
-            tripList = mockListTrips,
+            tripList = TripMocks.mockListTrips,
             onBack = { },
             onAddTrip = {_,_,_ -> },
             onDeleteTrip = {},

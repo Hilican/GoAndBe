@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
     alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.hilt.gradle)
 
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.10"
 }
@@ -70,4 +71,8 @@ dependencies {
     implementation(libs.firebase.auth)
 
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.io.mockk)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 }

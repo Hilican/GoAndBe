@@ -27,24 +27,23 @@ fun ToAllScreens(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        VerticalGap()
-        NavigationButton("About Us",toAboutUs)
+        NavigationButton("MainScreen",toMainPage)
         VerticalGap()
         NavigationButton("Log In",toLogIn)
         VerticalGap()
-        NavigationButton("Preferences",toPreferences)
-        VerticalGap()
         NavigationButton("Sign In",toSignIn)
         VerticalGap()
-        NavigationButton("Terms & Conditions",toTermsAndConditions)
+        NavigationButton("User Settings",toUserSettings)
         VerticalGap()
-        NavigationButton("Terms & Conditions",toTermsAndConditions)
+        NavigationButton("Preferences",toPreferences)
         VerticalGap()
         NavigationButton("Trip List",toTripList)
         VerticalGap()
-        NavigationButton("MainScreen",toMainPage)
+        NavigationButton("Terms & Conditions",toTermsAndConditions)
         VerticalGap()
-        NavigationButton("User Settings",toUserSettings)
+        NavigationButton("Terms & Conditions",toTermsAndConditions)
+        VerticalGap()
+        NavigationButton("About Us",toAboutUs)
     }
 }
 

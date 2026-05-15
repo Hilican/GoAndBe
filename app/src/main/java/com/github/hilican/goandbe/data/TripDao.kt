@@ -12,13 +12,13 @@ import kotlinx.coroutines.flow.Flow
 interface TripDao {
     // --- Operaciones de Viajes ---
     @Insert
-    suspend fun insertTrip(trip: Trip)
+    suspend fun insertTrip(trip: Trip) : Long // <-- Devuelve positivo si salio bien, -1 si ha habido error
 
     @Update
-    suspend fun updateTrip(trip: Trip)
+    suspend fun updateTrip(trip: Trip) : Int // <-- Devuelve numero de filas modificadas
 
     @Delete
-    suspend fun deleteTrip(trip: Trip)
+    suspend fun deleteTrip(trip: Trip) : Int // <-- Devuelve numero de filas modificadas
 
 
     @Query("SELECT * FROM trips WHERE tripId = :id")
@@ -27,11 +27,11 @@ interface TripDao {
     // --- Operaciones de Itinerario ---
 
     @Insert
-    suspend fun insertItineraryItem(item: ItineraryItem)
+    suspend fun insertItineraryItem(item: ItineraryItem) : Long
     @Update
-    suspend fun updateItineraryItem(item: ItineraryItem)
+    suspend fun updateItineraryItem(item: ItineraryItem) : Int
     @Delete
-    suspend fun deleteItineraryItem(item: ItineraryItem)
+    suspend fun deleteItineraryItem(item: ItineraryItem) : Int
 
     @Transaction // Necesario cuando usamos @Relation
     @Query("SELECT * FROM trips WHERE userId = :currentUserId")

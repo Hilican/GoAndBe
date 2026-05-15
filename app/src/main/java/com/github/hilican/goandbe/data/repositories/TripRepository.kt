@@ -6,8 +6,9 @@ import com.github.hilican.goandbe.data.TripDao
 import com.github.hilican.goandbe.data.TripWithItinerary
 import com.github.hilican.goandbe.domain.ITripRepository
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class TripRepository (private val tripDao: TripDao) : ITripRepository {
+class TripRepository @Inject constructor (private val tripDao: TripDao) : ITripRepository {
     // READ
     override fun getTripsForUser(userId: String): Flow<List<TripWithItinerary>> {
         return tripDao.getTripsWithItineraryForUser(userId)
@@ -18,24 +19,24 @@ class TripRepository (private val tripDao: TripDao) : ITripRepository {
     }
 
     // CREATE
-    override suspend fun addTrip(trip: Trip) {
-        tripDao.insertTrip(trip)
+    override suspend fun addTrip(trip: Trip) : Long {
+        return tripDao.insertTrip(trip)
     }
 
     // UPDATE
-    override suspend fun editTrip(updatedTrip: Trip) {
-        tripDao.updateTrip(updatedTrip)
+    override suspend fun editTrip(updatedTrip: Trip) : Int {
+        return tripDao.updateTrip(updatedTrip)
     }
 
     // DELETE
-    override suspend fun deleteTrip(trip: Trip) {
-        tripDao.deleteTrip(trip)
+    override suspend fun deleteTrip(trip: Trip) : Int {
+        return tripDao.deleteTrip(trip)
     }
 
     // -- FOR ACTIVITIES --
-    override suspend fun addActivity(item: ItineraryItem) = tripDao.insertItineraryItem(item)
+    override suspend fun addActivity(item: ItineraryItem) : Long = tripDao.insertItineraryItem(item)
 
-    override suspend fun deleteActivity(item: ItineraryItem) = tripDao.deleteItineraryItem(item)
+    override suspend fun deleteActivity(item: ItineraryItem) : Int = tripDao.deleteItineraryItem(item)
 
-    override suspend fun updateActivity(item: ItineraryItem) = tripDao.insertItineraryItem(item)
+    override suspend fun updateActivity(item: ItineraryItem) : Int = tripDao.updateItineraryItem(item)
 }
