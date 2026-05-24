@@ -16,6 +16,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -47,6 +48,7 @@ class HotelViewModelTest {
         mockkStatic(Log::class)
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
+        every { Log.d(any(), any()) } returns 0
 
         viewModel = HotelViewModel(repository, tripRepository, authRepository)
     }
@@ -110,16 +112,17 @@ class HotelViewModelTest {
         assertEquals(3, results.size) // Inicial (vacio) -> Logueado (reservas) -> Deslogueado (vacio)
         assertEquals(emptyList<ReservationRoom>(), results[2])
     }
-
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `createReserve en caso de EXITO oculta el loading y guarda la reserva`() = runTest {
         // 1. PREPARACIÓN (Arrange)
-        val hotelId = "hotel_abc"
+        val testUserId = TripMocks.mockTrip.userId
 
         // Mockear al usuario de Firebase
-        every { authRepository.getCurrentUserId() } returns TripMocks.mockTrip.userId
-        // NOTA: Cambia "User" por el nombre real de tu modelo de usuario
-        coEvery { authRepository.getUserById(TripMocks.mockTrip.userId) } returns mockk(relaxed = true) {
+        every { authRepository.getCurrentUserId() } returns testUserId
+
+        // NOTA: Si tu modelo de usuario se llama distinto a "User", ajústalo aquí.
+        coEvery { authRepository.getUserById(testUserId) } returns mockk(relaxed = true) {
             every { username } returns "Pepe"
             every { email } returns "pepe@correo.com"
         }
@@ -132,24 +135,23 @@ class HotelViewModelTest {
         coEvery { tripRepository.addReserve(any()) } returns Result.success(1L)
 
         // 2. EJECUCIÓN (Act)
-        viewModel.createReserve(
-            room = HotelMock.mockRoom, // o mockRoom.toDomainModel() si Room y RoomRoom son distintos
-            start = TripMocks.mockTrip.startDate,
-            end = TripMocks.mockTrip.endDate,
-            hotelId = hotelId,
-            tripId = TripMocks.mockTrip.tripId
-        )
+        // Opcional: Verificamos que el estado inicial del loading es true (según tu data class)
+        assert(viewModel.uiState.value.isLoading)
 
-        // Esperamos a que el viewModelScope.launch termine su trabajo
+        // Llamamos a la función
+        viewModel.createReserve(HotelMock.mockRoom.id)
+
+        // Adelantamos el tiempo virtual del test para que el viewModelScope.launch termine su trabajo
         advanceUntilIdle()
 
         // 3. VERIFICACIÓN (Assert)
-        val state = viewModel.uiState.value // Asumiendo que expones un uiState
+        val finalState = viewModel.uiState.value
 
-        assertEquals(false, state.isLoading)
-        assertEquals(null, state.errorMessage)
+        // Verificamos que el UiState se actualizó correctamente tras el éxito
+        assertEquals(false, finalState.isLoading)
+        assertEquals(null, finalState.errorMessage)
 
-        // Opcional: Verificar que las funciones realmente se llamaron
+        // Verificamos que las llamadas a la API y a Room realmente ocurrieron una vez
         coVerify(exactly = 1) { repository.reserveByGroupId(any(), any()) }
         coVerify(exactly = 1) { tripRepository.addReserve(any()) }
     }
@@ -255,8 +257,8 @@ class HotelViewModelTest {
         // 1. PREPARACIÓN (Arrange)
         val startMillis = 1714775586000L // Fecha de prueba en Long
         val endMillis = 1714948386000L
-        val expectedStartDateStr = convertMillisToString(startMillis) // El formato String esperado
-        val expectedEndDateStr = convertMillisToString(endMillis)
+        val expectedStartDateStr = (startMillis / 1000).toString()
+        val expectedEndDateStr = (endMillis / 1000).toString()
 
         val mockAvailableHotels = listOf(HotelMock.mockHotel)
 
@@ -313,6 +315,6 @@ class HotelViewModelTest {
         val state = viewModel.uiState.value
 
         assertEquals(false, state.isLoading)
-        assertEquals("No se pudo comprobar la disponibilidad en esas fechas.", state.errorMessage)
+        assertEquals("No se pudo comprobar la disponibilidad.", state.errorMessage)
     }
 }
