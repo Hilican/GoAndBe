@@ -1,16 +1,21 @@
 package com.github.hilican.goandbe.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,51 +26,64 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import com.github.hilican.goandbe.data.Trip
-import com.github.hilican.goandbe.data.TripWithItinerary
+import com.github.hilican.goandbe.data.Room.Trip
+import com.github.hilican.goandbe.data.Room.TripWithDetails
+import com.github.hilican.goandbe.data.Room.TripWithItinerary
 import com.github.hilican.goandbe.domain.TripMocks
 
-import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.*
+import com.github.hilican.goandbe.ui.screens.Components.*
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
+import com.github.hilican.goandbe.ui.viewmodels.HotelViewModel
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
 
 @Composable
 fun TripListScreen(
     onBack: () -> Unit,
-    viewModel: TripListViewModel
+    tripListViewModel: TripListViewModel,
+    hotelViewModel: HotelViewModel
 ) {
-    val tripList by viewModel.tripList.collectAsState()
-
+    val tripList by tripListViewModel.tripList.collectAsState()
+    val context = LocalContext.current
     var tripIdForItinerary by remember { mutableStateOf<Int?>(null) }
 
     if (tripIdForItinerary != null) {
         ItineraryScreen(
             tripId = tripIdForItinerary!!,
-            viewModel = viewModel,
             onBack = {
                 // Al volver, limpiamos el estado para que se vuelva a mostrar la lista
                 tripIdForItinerary = null
-            }
+            },
+            tripViewModel = tripListViewModel,
+            hotelViewModel = hotelViewModel,
         )
     } else {
         TripListContent(
             tripList = tripList,
             onBack = onBack,
             onAddTrip = { name, start, end ->
-                viewModel.addTrip(name, start, end)
+                tripListViewModel.addTrip(name, start, end)
             },
             onDeleteTrip = { trip ->
-                viewModel.deleteTrip(trip)
+                tripListViewModel.deleteTrip(trip)
             },
             onAddActivity = { tripId, desc, date, cost ->
-                viewModel.addActivityToTrip(tripId, desc, date, cost)
+                tripListViewModel.addActivityToTrip(tripId, desc, date, cost)
             },
             onSelectTrip = { selectedId ->
                 // selectedId ahora debe ser String desde TripListContent
                 tripIdForItinerary = selectedId
+            },
+            onAddImageClick = { tripId, uri ->
+                tripListViewModel.addImageToTrip(context, tripId, uri)
+            },
+            onDeleteImageClick = { tripId, imagePath ->
+                // Le pasamos a la pantalla superior el ID de este viaje y la ruta de la foto exacta
+                tripListViewModel.deleteImage(tripId, imagePath)
             }
         )
     }
@@ -73,12 +91,14 @@ fun TripListScreen(
 
 @Composable
 fun TripListContent(
-    tripList: List<TripWithItinerary>,
+    tripList: List<TripWithDetails>,
     onBack: () -> Unit,
     onAddTrip: (String, Long, Long) -> Unit,
     onDeleteTrip: (Trip) -> Unit,
     onAddActivity: (Int, String, Long, Long) -> Unit,
-    onSelectTrip: (Int) -> Unit
+    onSelectTrip: (Int) -> Unit,
+    onAddImageClick: (Int, Uri) -> Unit = { _, _ -> },
+    onDeleteImageClick: (Int, String) -> Unit = { _, _ -> }
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -113,28 +133,57 @@ fun TripListContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "My Trips",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(16.dp)
-            )
+            // --- SECCIÓN MODIFICADA: Título + Leyenda ---
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    text = "My Trips",
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(bottom = 8.dp) // Separación con la leyenda
+                )
+
+                // Fila para la leyenda explicativa
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "Tiene hospedaje reservado",
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(26.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = "Con hospedaje reservado",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant // Color sutil para la leyenda
+                    )
+                }
+            }
 
             // 2. The List (Sorted: Newest at the top)
             LazyColumn {
-                items(tripList.sortedByDescending { it.trip.startDate }) { tripWithItinerary ->
+                items(tripList.sortedByDescending { it.trip.startDate }) { tripWithDetails ->
+                    val hasHotels = tripWithDetails.reservations.isNotEmpty()
                     TripItem(
-                        tripWithItinerary = tripWithItinerary,
-                        onDeleteClick = { onDeleteTrip(tripWithItinerary.trip) },
+                        hasReservations = hasHotels,
+                        tripWithItinerary = tripWithDetails,
+                        onDeleteClick = { onDeleteTrip(tripWithDetails.trip) },
                         onAddActivityConfirm = { desc, dateMillis, cost ->
                             onAddActivity(
-                                tripWithItinerary.trip.tripId,
+                                tripWithDetails.trip.tripId,
                                 desc,
                                 dateMillis,
                                 cost
                             )
                         },
                         onViewActivitiesClick = {
-                            onSelectTrip(tripWithItinerary.trip.tripId)
+                            onSelectTrip(tripWithDetails.trip.tripId)
+                        },
+                        onAddImageClick = { tripId, uri ->
+                            onAddImageClick(tripId, uri)
+                        },
+                        onDeleteImageClick = { tripId, uri ->
+                            onDeleteImageClick(tripId, uri)
                         }
                     )
                 }
@@ -287,12 +336,13 @@ fun CreateTripDialog(
 private fun TripListPreview() {
     GoAndBeTheme {
         TripListContent(
-            tripList = TripMocks.mockListTrips,
+            tripList = TripMocks.mockListTripsWithDetails,
             onBack = { },
             onAddTrip = {_,_,_ -> },
             onDeleteTrip = {},
             onAddActivity = {_,_,_,_ -> },
-            onSelectTrip = {}
+            onSelectTrip = {},
+            onAddImageClick = {_ , _ -> }
         )
     }
 }

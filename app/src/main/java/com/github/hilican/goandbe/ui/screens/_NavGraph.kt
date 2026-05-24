@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
+import com.github.hilican.goandbe.ui.viewmodels.HotelViewModel
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
 
 @Composable
@@ -12,6 +13,7 @@ fun NavGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel,
     tripListViewModel: TripListViewModel,
+    hotelViewModel: HotelViewModel,
 ) {
     NavHost(
         navController = navController,
@@ -69,8 +71,9 @@ fun NavGraph(
         }
         composable<TripListScreenRoute> {
             TripListScreen(
-                viewModel = tripListViewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                tripListViewModel = tripListViewModel,
+                hotelViewModel = hotelViewModel
             )
         }
         composable<ForgottenPasswordRoute> {
@@ -89,6 +92,21 @@ fun NavGraph(
                 toTermsAndConditions = { navController.navigate(TermsAndConditionsRoute) },
                 toTripList = { navController.navigate(TripListScreenRoute) },
                 toUserSettings = { navController.navigate(UserSettingsRoute) },
+                toHotelSection = { navController.navigate(HotelsRoute)}
+            )
+        }
+        composable<HotelsRoute> {
+            HotelsScreen(
+                toHotelRooms = {navController.navigate(RoomsRoute)},
+                onBackClick = { navController.popBackStack() },
+                hotelViewModel = hotelViewModel,
+                tipListViewModel = tripListViewModel,
+            )
+        }
+        composable<RoomsRoute> {
+            RoomsScreen(
+                viewModel = hotelViewModel,
+                onBackClick = {navController.popBackStack()},
             )
         }
     }

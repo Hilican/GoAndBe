@@ -1,4 +1,4 @@
-package com.github.hilican.goandbe.ui.screens.TripListScreenExtras
+package com.github.hilican.goandbe.ui.screens.Components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,21 +19,26 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import com.github.hilican.goandbe.data.ItineraryItem
-import com.github.hilican.goandbe.data.TripWithItinerary
+import androidx.compose.ui.unit.dp
+import com.github.hilican.goandbe.data.Room.ItineraryItem
+import com.github.hilican.goandbe.data.Room.TripWithDetails
+import com.github.hilican.goandbe.data.Room.TripWithItinerary
 import com.github.hilican.goandbe.domain.TripMocks
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
+import com.github.hilican.goandbe.ui.viewmodels.HotelViewModel
 import kotlin.Int
 
 @Composable
 fun ItineraryScreen(
     tripId: Int,
-    viewModel: TripListViewModel,
+    tripViewModel: TripListViewModel,
+    hotelViewModel: HotelViewModel,
     onBack: () -> Unit
 ) {
-    val tripList by viewModel.tripList.collectAsState()
+    val tripList by tripViewModel.tripList.collectAsState()
     val trip = tripList.find { it.trip.tripId == tripId }
 
     // Llamamos al contenido puro
@@ -41,10 +46,13 @@ fun ItineraryScreen(
         item = trip,
         onBack = onBack,
         onDeleteActivity = { activity ->
-            viewModel.deleteActivity(
-                tripId = tripId, // Ojo: si en el ViewModel sigue como String, cámbialo a Int
+            tripViewModel.deleteActivity(
+                tripId = tripId,
                 activity = activity
             )
+        },
+        onDeleteReservation = { reserveId ->
+            hotelViewModel.cancelReserve(reserveId)
         }
     )
 }
@@ -52,9 +60,10 @@ fun ItineraryScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItineraryContent(
-    item: TripWithItinerary?, // Recibe el viaje ya buscado o null si está cargando
+    item: TripWithDetails?, // Recibe el viaje ya buscado o null si está cargando
     onBack: () -> Unit,
-    onDeleteActivity: (ItineraryItem) -> Unit // Callback para borrar
+    onDeleteActivity: (ItineraryItem) -> Unit, // Callback para borrar
+    onDeleteReservation: (String) -> Unit,
 ) {
     // Si el viaje es null, mostramos la carga
     if (item == null) {
@@ -115,15 +124,49 @@ fun ItineraryContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .padding(horizontal = 16.dp)
             ) {
-                // Ordenamos las actividades cronológicamente
-                items(item.activities.sortedBy { it.activityTime }) { activity ->
-                    ActivityItem(
-                        activity = activity,
-                        onDeleteClick = {
-                            onDeleteActivity(activity)
-                        }
-                    )
+                // 🏨 SECCIÓN 1: RESERVAS DE HOTELES (Si existen)
+                if (item.reservations.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Reservas",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+                    }
+
+                    items(items = item.reservations) { reservation ->
+                        ReservationCard(
+                            item = reservation,
+                            onDelete = { onDeleteReservation(reservation.id) } // Pasa el ID al callback nuevo
+                        )
+                    }
+                }
+
+                // 🗺️ SECCIÓN 2: ACTIVIDADES / ITINERARIO (Si existen)
+                if (item.activities.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Actividades y Rutas",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                        )
+                    }
+
+                    // Ordenamos las actividades cronológicamente
+                    items(items = item.activities.sortedBy { it.activityTime }) { activity ->
+                        ActivityItem(
+                            activity = activity,
+                            onDeleteClick = {
+                                onDeleteActivity(activity)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -135,9 +178,10 @@ fun ItineraryContent(
 private fun preview() {
     GoAndBeTheme {
         ItineraryContent(
-            item = TripMocks.mockTripWithItinerary,
+            item = TripMocks.mockTripWithDetails,
             onBack = { },
-            onDeleteActivity = {}
+            onDeleteActivity = {},
+            onDeleteReservation = {},
         )
     }
 }

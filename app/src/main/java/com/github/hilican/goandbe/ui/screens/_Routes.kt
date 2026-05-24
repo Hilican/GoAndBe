@@ -30,3 +30,8 @@ object MainPageScreenRoute //AboutUsScreen
 object UserSettingsRoute
 @Serializable
 object ForgottenPasswordRoute
+
+@Serializable
+object HotelsRoute
+@Serializable
+object RoomsRoute

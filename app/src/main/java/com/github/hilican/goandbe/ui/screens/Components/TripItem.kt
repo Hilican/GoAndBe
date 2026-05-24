@@ -1,5 +1,9 @@
-package com.github.hilican.goandbe.ui.screens.TripListScreenExtras
+package com.github.hilican.goandbe.ui.screens.Components
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,29 +42,45 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.hilican.goandbe.data.Trip
-import com.github.hilican.goandbe.data.TripWithItinerary
+import com.github.hilican.goandbe.data.Room.Trip
+import com.github.hilican.goandbe.data.Room.TripWithDetails
+import com.github.hilican.goandbe.data.Room.TripWithItinerary
 import com.github.hilican.goandbe.domain.TripMocks
 import com.github.hilican.goandbe.ui.screens.VerticalGap
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
+import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun TripItem(
-    tripWithItinerary: TripWithItinerary,
+    tripWithItinerary: TripWithDetails,
+    hasReservations: Boolean,
     onDeleteClick: (Trip) -> Unit = {},
     onAddActivityConfirm: (String, Long, Long) -> Unit = { _, _, _ -> },
-    onViewActivitiesClick: (Int) -> Unit = {}
+    onViewActivitiesClick: (Int) -> Unit = {},
+    onAddImageClick: (Int, Uri) -> Unit = { _, _ -> },
+    onDeleteImageClick: (Int, String) -> Unit = { _, _ -> }
 ) {
     val trip = tripWithItinerary.trip // Acceso directo a los datos del viaje
     var showOptions by remember { mutableStateOf(false) }
 
+    var showGallery by remember { mutableStateOf(false) }
     var showAddActivityDialog by remember { mutableStateOf(false)}
     var selectedTripId by remember { mutableStateOf<Int?>(null) }
 
     val startDate = remember(trip.startDate) { trip.startDate.toUtcDateString("dd/MM/yyyy") }
     val endDate = remember(trip.endDate) { trip.endDate.toUtcDateString("dd/MM/yyyy") }
+
+    val pickMediaLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        // Si el usuario seleccionó una imagen (uri no es null), se la mandamos a la pantalla superior
+        if (uri != null) {
+            onAddImageClick(trip.tripId, uri)
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -75,11 +96,26 @@ fun TripItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = trip.name,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = trip.name,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f, fill = false) // Evita que textos muy largos pisen el icono
+                )
+                if (hasReservations) {
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "Tiene hospedaje reservado",
+                        tint = MaterialTheme.colorScheme.secondary, // Puedes usar el secundario para que resalte más
+                        modifier = Modifier
+                            .size(26.dp) // 🌟 Aumentamos de 20.dp a 26.dp para que tenga más presencia al lado del título
+                    )
+                }
+            }
 
             VerticalGap(4)
 
@@ -137,6 +173,28 @@ fun TripItem(
                         Text("Añadir actividad")
                     }
 
+                    // Ver galeria
+                    val fotosCount = trip.galleryImageUris.size
+                    OutlinedButton(
+                        onClick = { showGallery = !showGallery },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (showGallery) "Ocultar galería" else "Ver galería ($fotosCount)")
+                    }
+
+                    // Añadir foto a la galería
+                    FilledTonalButton(
+                        onClick = {
+                            // Lanzamos el selector pidiendo solo imágenes
+                            pickMediaLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Añadir foto a la galería")
+                    }
+
                     // Botón para eliminar (en rojo para alertar al usuario)
                     OutlinedButton(
                         onClick = { onDeleteClick(trip) },
@@ -165,6 +223,30 @@ fun TripItem(
                         selectedTripId = null
                     }
                 )
+            }
+
+            // 2. SECCIÓN DE LA GALERÍA
+            if (showGallery) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (trip.galleryImageUris.isEmpty()) {
+                    Text(
+                        text = "No hay fotos en este viaje todavía.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    // Invocamos tu carrusel reutilizable pasándole las URIs locales
+                    RoomImageCarousel(
+                        images = trip.galleryImageUris,
+                        onDeleteImageClick = { imagePath ->
+                            // Le pasamos a la pantalla superior el ID de este viaje y la ruta de la foto exacta
+                            onDeleteImageClick(trip.tripId, imagePath)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
@@ -249,8 +331,8 @@ fun AddActivityDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
-                        timeZone = java.util.TimeZone.getTimeZone("UTC")
+                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
                     }
 
                     val startDateStr = formatter.format(tripStartDate)
@@ -298,17 +380,19 @@ private fun TripItemClosedPreview() {
     GoAndBeTheme {
         // Usamos el mockTrip que definimos antes
         TripItem(
-            tripWithItinerary = TripMocks.mockTripWithItinerary,
+            tripWithItinerary = TripMocks.mockTripWithDetails,
             onDeleteClick = {},
             onAddActivityConfirm = { _, _, _ -> },
-            onViewActivitiesClick = {}
+            onViewActivitiesClick = {},
+            onAddImageClick = {_, _ -> },
+            hasReservations = true,
         )
     }
 }
 
 fun Long.toUtcDateString(pattern: String = "dd/MM/yyyy"): String {
-    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
-        timeZone = java.util.TimeZone.getTimeZone("UTC")
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
     }
     return formatter.format(Date(this))
 }

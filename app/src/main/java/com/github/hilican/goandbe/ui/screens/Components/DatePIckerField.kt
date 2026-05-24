@@ -1,4 +1,4 @@
-package com.github.hilican.goandbe.ui.screens.TripListScreenExtras
+package com.github.hilican.goandbe.ui.screens.Components
 
 import android.icu.text.SimpleDateFormat
 import android.icu.util.TimeZone
@@ -48,20 +48,23 @@ fun DatePickerField(
     mode: DatePickerMode = DatePickerMode.ALL
 ) {
     var showModal by remember { mutableStateOf(false) }
-    val calendar = Calendar.getInstance().apply {
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
+    val calendar = remember {
+        Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
     }
     val today = calendar.timeInMillis
-    val datePickerState = rememberDatePickerState(
-        selectableDates = object : SelectableDates {
+    // 2. 🌟 ¡LA SOLUCIÓN! Blindamos el SelectableDates dentro de un remember protegido para Previews
+    val selectableDatesRules = remember(mode) {
+        object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                 return when (mode) {
                     DatePickerMode.BIRTHDAY -> utcTimeMillis <= today
                     DatePickerMode.TRIP -> utcTimeMillis >= today
-                    DatePickerMode.ALL -> true // Habilita todas las fechas
+                    DatePickerMode.ALL -> true
                 }
             }
 
@@ -69,20 +72,25 @@ fun DatePickerField(
                 return when (mode) {
                     DatePickerMode.BIRTHDAY -> year <= calendar.get(Calendar.YEAR)
                     DatePickerMode.TRIP -> year >= calendar.get(Calendar.YEAR)
-                    DatePickerMode.ALL -> true // Habilita todos los años
+                    DatePickerMode.ALL -> true
                 }
             }
         }
+    }
+
+    // 3. Le pasamos las reglas ya memorizadas al estado del DatePicker
+    val datePickerState = rememberDatePickerState(
+        selectableDates = selectableDatesRules
     )
 
     val dateDisplayString = remember(selectedDate) {
-        if (selectedDate != null && selectedDate > 0L) {
+        if (selectedDate > 0L) { // Simplificado: Long primitivo no es nulo
             val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC") // Importante para DatePicker
+                timeZone = TimeZone.getTimeZone("UTC")
             }
             formatter.format(Date(selectedDate))
         } else {
-            "" // Si es null, mostramos el campo vacío
+            ""
         }
     }
 

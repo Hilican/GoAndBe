@@ -1,4 +1,4 @@
-package com.github.hilican.goandbe.ui.screens.TripListScreenExtras
+package com.github.hilican.goandbe.ui.screens.Components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.hilican.goandbe.data.ItineraryItem
+import com.github.hilican.goandbe.data.Room.ItineraryItem
 import com.github.hilican.goandbe.domain.TripMocks
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import java.text.SimpleDateFormat
@@ -34,14 +34,15 @@ import java.util.Locale
 @Composable
 fun ActivityItem(
     activity: ItineraryItem,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onClick: () -> Unit = {}
     ) {
     val formatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

@@ -19,11 +19,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.hilican.goandbe.data.User
+import com.github.hilican.goandbe.data.Room.UserRoom
 import com.github.hilican.goandbe.domain.UserMock
-import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.DatePickerField
-import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.DatePickerMode
+import com.github.hilican.goandbe.ui.screens.Components.DatePickerField
+import com.github.hilican.goandbe.ui.screens.Components.DatePickerMode
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
 
@@ -48,14 +47,14 @@ fun UserInfoScreen(
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { error ->
-            if (uiState.user != null) {
+            if (uiState.userRoom != null) {
                 Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
                 viewModel.clearError() // Limpiamos el error para que no se repita el Toast al recomponer
             }
         }
     }
 
-    val currentUser = uiState.user
+    val currentUser = uiState.userRoom
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
@@ -66,7 +65,7 @@ fun UserInfoScreen(
         } else if (currentUser != null) {
             // 2. ÉXITO: Tenemos los datos del usuario, pintamos el formulario
             UserInfoContent(
-                user = currentUser,
+                userRoom = currentUser,
                 isLoading = uiState.isSaving, // 👈 Pasamos el estado de guardado para congelar botones si hace falta
                 onBack = onBack,
                 onConfirm = { updatedUser ->
@@ -100,33 +99,33 @@ fun UserInfoScreen(
 
 @Composable
 fun UserInfoContent(
-    user: User,
+    userRoom: UserRoom,
     isLoading: Boolean, // 👈 Usaremos esta variable en toda la UI
     onBack: () -> Unit,
-    onConfirm: (User) -> Unit,
+    onConfirm: (UserRoom) -> Unit,
     onValueChange: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
-    var username by remember(user.username) { mutableStateOf(user.username) }
-    var dateOfBirth by remember(user.dateOfBirth) { mutableLongStateOf(user.dateOfBirth) }
-    var email by remember(user.email) { mutableStateOf(user.email) }
+    var username by remember(userRoom.username) { mutableStateOf(userRoom.username) }
+    var dateOfBirth by remember(userRoom.dateOfBirth) { mutableLongStateOf(userRoom.dateOfBirth) }
+    var email by remember(userRoom.email) { mutableStateOf(userRoom.email) }
 
-    var phoneNumber by remember(user.phoneNumber) { mutableStateOf(user.phoneNumber ?: "") }
-    var receiveEmails by remember(user.receiveEmails) {
+    var phoneNumber by remember(userRoom.phoneNumber) { mutableStateOf(userRoom.phoneNumber ?: "") }
+    var receiveEmails by remember(userRoom.receiveEmails) {
         mutableStateOf(
-            user.receiveEmails ?: false
+            userRoom.receiveEmails ?: false
         )
     }
 
-    var street by remember(user.address.street) { mutableStateOf(user.address.street ?: "") }
-    var city by remember(user.address.city) { mutableStateOf(user.address.city ?: "") }
-    var state by remember(user.address.state) { mutableStateOf(user.address.state ?: "") }
-    var zipCode by remember(user.address.zipCode) { mutableStateOf(user.address.zipCode ?: "") }
-    var country by remember(user.address.country) { mutableStateOf(user.address.country ?: "") }
-    var additionalInfo by remember(user.address.additionalInfo) {
+    var street by remember(userRoom.address.street) { mutableStateOf(userRoom.address.street ?: "") }
+    var city by remember(userRoom.address.city) { mutableStateOf(userRoom.address.city ?: "") }
+    var state by remember(userRoom.address.state) { mutableStateOf(userRoom.address.state ?: "") }
+    var zipCode by remember(userRoom.address.zipCode) { mutableStateOf(userRoom.address.zipCode ?: "") }
+    var country by remember(userRoom.address.country) { mutableStateOf(userRoom.address.country ?: "") }
+    var additionalInfo by remember(userRoom.address.additionalInfo) {
         mutableStateOf(
-            user.address.additionalInfo ?: ""
+            userRoom.address.additionalInfo ?: ""
         )
     }
 
@@ -312,7 +311,7 @@ fun UserInfoContent(
         // --- Botón de Guardar Cambios ---
         Button(
             onClick = {
-                val updateAddress = user.address.copy(
+                val updateAddress = userRoom.address.copy(
                     street = street,
                     city = city,
                     state = state,
@@ -320,7 +319,7 @@ fun UserInfoContent(
                     country = country,
                     additionalInfo = additionalInfo
                 )
-                val updatedUser = user.copy(
+                val updatedUser = userRoom.copy(
                     username = username,
                     dateOfBirth = dateOfBirth,
                     phoneNumber = phoneNumber,
@@ -369,7 +368,7 @@ private fun preview() {
         val context = LocalContext.current
 
         UserInfoContent(
-            user = UserMock.newEmptyUser,
+            userRoom = UserMock.newEmptyUserRoom,
             isLoading = false,
             onBack = { },
             onConfirm = { _ ->

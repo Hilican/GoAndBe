@@ -24,10 +24,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.hilican.goandbe.domain.Address
+import com.github.hilican.goandbe.domain.model.Address
 import com.github.hilican.goandbe.domain.DTO.UserRegistrationRequest
-import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.DatePickerField
-import com.github.hilican.goandbe.ui.screens.TripListScreenExtras.DatePickerMode
+import com.github.hilican.goandbe.ui.screens.Components.DatePickerField
+import com.github.hilican.goandbe.ui.screens.Components.DatePickerMode
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
 

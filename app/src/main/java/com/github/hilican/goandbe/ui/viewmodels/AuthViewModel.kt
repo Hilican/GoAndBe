@@ -2,9 +2,9 @@ package com.github.hilican.goandbe.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.hilican.goandbe.data.User
+import com.github.hilican.goandbe.data.Room.UserRoom
 import com.github.hilican.goandbe.domain.DTO.UserRegistrationRequest
-import com.github.hilican.goandbe.domain.IAuthRepository
+import com.github.hilican.goandbe.domain.iRepositories.IAuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor (private val repository: IAuthRepository) : ViewModel() {
     data class UserUiState(
-        val user: User? = null,           // El usuario (nulo al principio)
+        val userRoom: UserRoom? = null,           // El usuario (nulo al principio)
         val isLoading: Boolean = true,    // Cargando inicial (true por defecto)
         val isSaving: Boolean = false,    // Cargando al darle a guardar
         val errorMessage: String? = null,  // Errores sueltos
@@ -57,13 +57,13 @@ class AuthViewModel @Inject constructor (private val repository: IAuthRepository
                     // Si hay un ID, cargamos los datos del usuario
                     val user = repository.getUserById(userId)
                     _uiState.update {
-                        it.copy(isLoading = false, isAuthenticated = true, user = user)
+                        it.copy(isLoading = false, isAuthenticated = true, userRoom = user)
                     }
                 } else {
                     // Si el ID pasa a ser null (no logueado o sesión expirada),
                     // el estado se actualiza y la UI redirigirá a Home automáticamente
                     _uiState.update {
-                        it.copy(isLoading = false, isAuthenticated = false, user = null)
+                        it.copy(isLoading = false, isAuthenticated = false, userRoom = null)
                     }
                 }
             }
@@ -85,7 +85,7 @@ class AuthViewModel @Inject constructor (private val repository: IAuthRepository
                     val user = repository.getUserById(currentUserId)
                     if (user != null) {
                         // ÉXITO: Tenemos el usuario, apagamos el cargando
-                        _uiState.update { it.copy(user = user, isLoading = false, isAuthenticated = true) }
+                        _uiState.update { it.copy(userRoom = user, isLoading = false, isAuthenticated = true) }
                     } else {
                         // ERROR: Sesión activa en Firebase pero no hay datos en la DB local
                         _uiState.update { it.copy(isLoading = false) }
@@ -152,7 +152,7 @@ class AuthViewModel @Inject constructor (private val repository: IAuthRepository
                 val result = repository.signUp(userInfo)
                 result.fold(
                     onSuccess = { user ->
-                        _uiState.update { it.copy(user = user, isLoading = false) }
+                        _uiState.update { it.copy(userRoom = user, isLoading = false) }
                     },
                     onFailure = { error ->
                         _uiState.update { it.copy(isLoading = false) }
@@ -177,7 +177,7 @@ class AuthViewModel @Inject constructor (private val repository: IAuthRepository
 
                     if (user != null) {
                         // ÉXITO TOTAL: Guardamos el usuario y apagamos el cargando
-                        _uiState.update { it.copy(user = user, isLoading = false, isAuthenticated = true) }
+                        _uiState.update { it.copy(userRoom = user, isLoading = false, isAuthenticated = true) }
                     } else {
                         // ERROR A MEDIAS: Login en Firebase bien, pero sin perfil
                         // Apagamos el cargando primero y luego disparamos tu función de error
@@ -197,7 +197,7 @@ class AuthViewModel @Inject constructor (private val repository: IAuthRepository
     fun logOut()
     {
         repository.logOut()
-        _uiState.update { it.copy(isAuthenticated = false, user = null) }
+        _uiState.update { it.copy(isAuthenticated = false, userRoom = null) }
     }
 
     fun clearError() {
@@ -209,19 +209,19 @@ class AuthViewModel @Inject constructor (private val repository: IAuthRepository
         _uiState.update { it.copy(errorMessage = msg) }
     }
     //IGNORAR POR AHORA
-    fun updateUser(updatedUser: User) {
+    fun updateUser(updatedUserRoom: UserRoom) {
         viewModelScope.launch {
             // 1. Activamos el modo "Guardando" y limpiamos errores anteriores
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
 
             // 2. Intentamos guardar
-            val result = repository.updateUser(updatedUser)
+            val result = repository.updateUser(updatedUserRoom)
 
             result.fold(
                 onSuccess = { userId ->
-                    val user = repository.getUserById(userId) ?: updatedUser
+                    val user = repository.getUserById(userId) ?: updatedUserRoom
                     // 3. Si va bien, actualizamos el usuario y apagamos isSaving
-                    _uiState.update { it.copy(user = user, isSaving = false) }
+                    _uiState.update { it.copy(userRoom = user, isSaving = false) }
                 },
                 onFailure = { error ->
                     // 4. Si falla, apagamos isSaving y ponemos el error (el User queda intacto)

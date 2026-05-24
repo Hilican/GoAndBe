@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
 import com.github.hilican.goandbe.ui.screens.*
 import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
+import com.github.hilican.goandbe.ui.viewmodels.HotelViewModel
 import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -34,10 +35,12 @@ fun TravelerAppNavigation() {
 
     val authViewModel: AuthViewModel = hiltViewModel()
     val tripListViewModel: TripListViewModel = hiltViewModel()
+    val hotelViewModel: HotelViewModel = hiltViewModel()
 
     NavGraph(
         navController = navController,
         authViewModel = authViewModel,
-        tripListViewModel = tripListViewModel
+        tripListViewModel = tripListViewModel,
+        hotelViewModel = hotelViewModel
     )
 }

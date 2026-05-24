@@ -1,7 +1,6 @@
 package com.github.hilican.goandbe.domain.DTO
 
-import com.github.hilican.goandbe.domain.Address
-import kotlin.compareTo
+import com.github.hilican.goandbe.domain.model.Address
 
 data class UserRegistrationRequest(
     val username: String,

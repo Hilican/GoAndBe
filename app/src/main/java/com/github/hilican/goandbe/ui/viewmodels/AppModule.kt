@@ -2,16 +2,25 @@ package com.github.hilican.goandbe.ui.viewmodels
 
 import android.content.Context
 import androidx.room.Room
-import com.github.hilican.goandbe.data.AppDatabase
+import com.github.hilican.goandbe.BuildConfig
+import com.github.hilican.goandbe.data.Room.AppDatabase
+import com.github.hilican.goandbe.data.Room.TripDao
+import com.github.hilican.goandbe.data.Room.UserDao
+import com.github.hilican.goandbe.data.remote.api.IHotelApiService
 import com.github.hilican.goandbe.data.repositories.AuthRepository
-import com.github.hilican.goandbe.domain.IAuthRepository
+import com.github.hilican.goandbe.data.repositories.HotelApiRepository
+import com.github.hilican.goandbe.data.repositories.TripRepository
+import com.github.hilican.goandbe.domain.iRepositories.IAuthRepository
+import com.github.hilican.goandbe.domain.iRepositories.IHotelApiRepository
+import com.github.hilican.goandbe.domain.iRepositories.ITripRepository
 import com.google.firebase.auth.FirebaseAuth
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -38,15 +47,31 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideFirebaseAuth() = FirebaseAuth.getInstance()
-}
 
-@Module
-@InstallIn(SingletonComponent::class)
-abstract class RepositoryModule {
+    @Provides
+    @Singleton
+    fun provideHotelApi(): IHotelApiService = Retrofit.Builder()
+            .baseUrl(BuildConfig.HOTELS_API_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(IHotelApiService::class.java)
 
-    @Binds
-    @Singleton // Opcional: para que sea una única instancia en toda la app
-    abstract fun bindAuthRepository(
-        authRepositoryImpl: AuthRepository // Le pasas la clase REAL
-    ): IAuthRepository // Y Hilt devolverá la INTERFAZ cuando se la pidan
+    @Provides
+    @Singleton
+    fun provideHotelRepository(
+        apiService: IHotelApiService
+    ): IHotelApiRepository = HotelApiRepository(apiService)
+
+    @Provides
+    @Singleton
+    fun provideTripRepository(
+        tripDao: TripDao
+    ): ITripRepository = TripRepository(tripDao)
+
+    @Provides
+    @Singleton
+    fun provideAuthRepository(
+        userDao: UserDao,
+        firebaseAuth: FirebaseAuth
+    ): IAuthRepository = AuthRepository(userDao, firebaseAuth)
 }

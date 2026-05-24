@@ -1,4 +1,4 @@
-package com.github.hilican.goandbe.domain
+package com.github.hilican.goandbe.domain.iRepositories
 
 import kotlinx.coroutines.flow.Flow
 

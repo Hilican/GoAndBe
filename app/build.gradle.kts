@@ -25,13 +25,23 @@ android {
     }
 
     buildTypes {
+        debug{
+            buildConfigField("String", "HOTELS_API_URL", "\"http://15.224.84.148:8090\"")
+            buildConfigField("String", "GROUP_ID", "\"G07\"")
+        }
         release {
+            buildConfigField("String", "HOTELS_API_URL", "\"http://15.224.84.148:8090\"")
+            buildConfigField("String", "GROUP_ID", "\"G07\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+
+    }
+    buildFeatures{
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -72,7 +82,14 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.io.mockk)
+    testImplementation(libs.okhttp.mockwebserver)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    implementation(libs.coil.core)
+    implementation(libs.coil.compose)
 }

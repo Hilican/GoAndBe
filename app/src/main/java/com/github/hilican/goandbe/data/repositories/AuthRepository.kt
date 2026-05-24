@@ -1,45 +1,47 @@
 package com.github.hilican.goandbe.data.repositories
 
-import com.github.hilican.goandbe.data.User
-import com.github.hilican.goandbe.data.UserDao
+import com.github.hilican.goandbe.data.Room.UserRoom
+import com.github.hilican.goandbe.data.Room.UserDao
 import com.github.hilican.goandbe.domain.DTO.UserRegistrationRequest
-import com.github.hilican.goandbe.domain.IAuthRepository
+import com.github.hilican.goandbe.domain.iRepositories.IAuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class AuthRepository @Inject constructor (private val userDao: UserDao, private val firebaseAuth: FirebaseAuth) : IAuthRepository {
+class AuthRepository @Inject constructor (
+    private val userDao: UserDao,
+    private val firebaseAuth: FirebaseAuth
+) : IAuthRepository {
     // -- IUserRepository --
     // READ
-    override suspend fun getUserByUsername(username: String): User? {
+    override suspend fun getUserByUsername(username: String): UserRoom? {
         return userDao.getUserByUsername(username)
     }
 
-    override suspend fun getUserById(userId: String): User? {
+    override suspend fun getUserById(userId: String): UserRoom? {
         return userDao.getUserById(userId)
     }
 
-    override suspend fun getUserByEmail(email: String): User? {
+    override suspend fun getUserByEmail(email: String): UserRoom? {
         return userDao.getUserByEmail(email)
     }
 
     // CREATE
-    override suspend fun saveUserLocally(user: User) : Long {
-        return userDao.insertUser(user)
+    override suspend fun saveUserLocally(userRoom: UserRoom) : Long {
+        return userDao.insertUser(userRoom)
     }
 
     // UPDATE
-    override suspend fun updateUserLocally(updatedUser: User): Int {
-        return userDao.updateUser(updatedUser)
+    override suspend fun updateUserLocally(updatedUserRoom: UserRoom): Int {
+        return userDao.updateUser(updatedUserRoom)
     }
 
     // DELETE
-    override suspend fun deleteUserLocally(user: User): Int {
-        return userDao.deleteUser(user)
+    override suspend fun deleteUserLocally(userRoom: UserRoom): Int {
+        return userDao.deleteUser(userRoom)
     }
 
     // -- IFirebaseRepository --
@@ -99,7 +101,7 @@ class AuthRepository @Inject constructor (private val userDao: UserDao, private 
     }
 
     // -- FUNCIONES AÑADIDAS --
-    override suspend fun signUp(request: UserRegistrationRequest) : Result<User>
+    override suspend fun signUp(request: UserRegistrationRequest) : Result<UserRoom>
     {
         return try {
             // Intentamos crear el usuario en Firebase
@@ -163,10 +165,10 @@ class AuthRepository @Inject constructor (private val userDao: UserDao, private 
     }
 
     override suspend fun updateUser(
-        updatedUser: User
+        updatedUserRoom: UserRoom
     ): Result<String> {
         return try {
-            val rowsAffected = updateUserLocally(updatedUser)
+            val rowsAffected = updateUserLocally(updatedUserRoom)
             if (rowsAffected > 0) {
                 Result.success("Usuario actualizado correctamente")
             } else {
@@ -190,8 +192,8 @@ class AuthRepository @Inject constructor (private val userDao: UserDao, private 
         }
     }
 
-    private fun UserRegistrationRequest.toEntity(firebaseId: String): User {
-        return User(
+    private fun UserRegistrationRequest.toEntity(firebaseId: String): UserRoom {
+        return UserRoom(
             userId = firebaseId,
             email = this.email,
             username = this.username,

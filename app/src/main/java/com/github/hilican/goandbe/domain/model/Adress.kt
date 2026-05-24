@@ -1,4 +1,4 @@
-package com.github.hilican.goandbe.domain
+package com.github.hilican.goandbe.domain.model
 
 data class Address(
     val street: String,       // Calle y número (ej. "Calle Mayor 15, 3°B")

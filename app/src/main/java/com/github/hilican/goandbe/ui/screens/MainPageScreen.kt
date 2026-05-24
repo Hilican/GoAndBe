@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
@@ -47,6 +49,7 @@ fun MainPage(
     toTripList: () -> Unit,
     toUserSettings: () -> Unit,
     viewModel: AuthViewModel,
+    toHotelSection: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -59,6 +62,7 @@ fun MainPage(
         toTermsAndConditions = toTermsAndConditions,
         toTripList = toTripList,
         toUserSettings = toUserSettings,
+        toHotelSection = toHotelSection,
         onLogOutClick = { ->
             viewModel.logOut()
         },
@@ -79,7 +83,8 @@ fun MainPageContent(
     toTripList: () -> Unit,
     toUserSettings: () -> Unit,
     onLogOutClick:  () -> Unit,
-    isLoggedIn: Boolean
+    toHotelSection: () -> Unit,
+    isLoggedIn: Boolean,
     ) {
     //val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -185,11 +190,19 @@ fun MainPageContent(
                     )
                 },
                 bottomBar = {
-                    if (isLoggedIn) {
-                        BottomAppBar {
-                            // 1. Empuja el botón hacia la derecha desde el inicio
-                            Spacer(modifier = Modifier.weight(1f))
+                    BottomAppBar {
+                        // 1. Empuja el botón hacia la derecha desde el inicio
+                        Spacer(modifier = Modifier.weight(1f))
 
+                        IconButton(onClick = toHotelSection) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Buscar Hoteles"
+                            )
+                        }
+
+                        if (isLoggedIn) {
+                            Spacer(modifier = Modifier.weight(1f))
                             // 2. Tu botón centrado
                             IconButton(onClick = toTripList) {
                                 Icon(
@@ -197,10 +210,9 @@ fun MainPageContent(
                                     contentDescription = "Mis Viajes"
                                 )
                             }
-
-                            // 3. Empuja el botón hacia la izquierda desde el final
-                            Spacer(modifier = Modifier.weight(1f))
                         }
+                        // 3. Empuja el botón hacia la izquierda desde el final
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 },
             ) { padding ->
@@ -243,7 +255,8 @@ private fun preview()
             toTripList = {},
             toUserSettings = {},
             onLogOutClick = {},
-            isLoggedIn = true
+            toHotelSection = {},
+            isLoggedIn = true,
         )
     }
 }
