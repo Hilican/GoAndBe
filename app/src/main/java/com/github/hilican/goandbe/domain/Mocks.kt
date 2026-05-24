@@ -13,7 +13,7 @@ import com.github.hilican.goandbe.domain.model.Address
 import com.github.hilican.goandbe.domain.model.Hotel
 import com.github.hilican.goandbe.domain.model.Reservation
 import com.github.hilican.goandbe.domain.model.Room
-import com.github.hilican.goandbe.ui.viewmodels.HotelUiState
+import com.github.hilican.goandbe.viewmodel.HotelUiState
 
 object TripMocks{
     val mockTrip = Trip(

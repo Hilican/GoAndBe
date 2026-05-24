@@ -2,9 +2,9 @@ package com.github.hilican.goandbe.viewmodels
 
 import com.github.hilican.goandbe.MainDispatcherRule
 import com.github.hilican.goandbe.domain.DTO.UserRegistrationRequest
-import com.github.hilican.goandbe.domain.iRepositories.IAuthRepository
+import com.github.hilican.goandbe.repo.interfaces.IAuthRepository
 import com.github.hilican.goandbe.domain.UserMock
-import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
+import com.github.hilican.goandbe.viewmodel.AuthViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

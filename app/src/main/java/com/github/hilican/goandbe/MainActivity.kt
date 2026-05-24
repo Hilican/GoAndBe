@@ -7,11 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
-import com.github.hilican.goandbe.ui.theme.GoAndBeTheme
-import com.github.hilican.goandbe.ui.screens.*
-import com.github.hilican.goandbe.ui.viewmodels.AuthViewModel
-import com.github.hilican.goandbe.ui.viewmodels.HotelViewModel
-import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
+import com.github.hilican.goandbe.view.theme.GoAndBeTheme
+import com.github.hilican.goandbe.view.screens.*
+import com.github.hilican.goandbe.viewmodel.AuthViewModel
+import com.github.hilican.goandbe.viewmodel.HotelViewModel
+import com.github.hilican.goandbe.viewmodel.TripListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 

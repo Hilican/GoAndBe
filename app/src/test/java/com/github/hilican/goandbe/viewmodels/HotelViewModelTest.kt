@@ -1,16 +1,15 @@
 package com.github.hilican.goandbe.viewmodels
 
 import android.util.Log
-import com.github.hilican.goandbe.HotelTestData
 import com.github.hilican.goandbe.MainDispatcherRule
 import com.github.hilican.goandbe.data.Room.ReservationRoom
 import com.github.hilican.goandbe.domain.HotelMock
 import com.github.hilican.goandbe.domain.TripMocks
-import com.github.hilican.goandbe.domain.iRepositories.IAuthRepository
-import com.github.hilican.goandbe.domain.iRepositories.IHotelApiRepository
-import com.github.hilican.goandbe.domain.iRepositories.ITripRepository
+import com.github.hilican.goandbe.repo.interfaces.IAuthRepository
+import com.github.hilican.goandbe.repo.interfaces.IHotelApiRepository
+import com.github.hilican.goandbe.repo.interfaces.ITripRepository
 import com.github.hilican.goandbe.domain.convertMillisToString
-import com.github.hilican.goandbe.ui.viewmodels.HotelViewModel
+import com.github.hilican.goandbe.viewmodel.HotelViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

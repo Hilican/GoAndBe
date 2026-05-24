@@ -1,9 +1,9 @@
 package com.github.hilican.goandbe.viewmodels
 
 import com.github.hilican.goandbe.MainDispatcherRule
-import com.github.hilican.goandbe.data.repositories.AuthRepository
-import com.github.hilican.goandbe.data.repositories.TripRepository
-import com.github.hilican.goandbe.ui.viewmodels.TripListViewModel
+import com.github.hilican.goandbe.repo.implementations.AuthRepository
+import com.github.hilican.goandbe.repo.implementations.TripRepository
+import com.github.hilican.goandbe.viewmodel.TripListViewModel
 import com.github.hilican.goandbe.domain.TripMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
