@@ -148,6 +148,7 @@ fun ItineraryContent(
                     items(items = item.reservations) { reservation ->
                         ReservationCard(
                             item = reservation,
+                            DeleteOption = true,
                             onDelete = { onDeleteReservation(reservation.id) } // Pasa el ID al callback nuevo
                         )
                     }

@@ -35,3 +35,5 @@ object ForgottenPasswordRoute
 object HotelsRoute
 @Serializable
 object RoomsRoute
+@Serializable
+object AllReservationsRoute

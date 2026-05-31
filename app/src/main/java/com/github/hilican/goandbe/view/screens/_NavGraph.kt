@@ -73,6 +73,7 @@ fun NavGraph(
         composable<TripListScreenRoute> {
             TripListScreen(
                 onBack = { navController.popBackStack() },
+                toReservations = { navController.navigate(AllReservationsRoute) },
                 tripListViewModel = tripListViewModel,
                 hotelViewModel = hotelViewModel
             )
@@ -108,6 +109,12 @@ fun NavGraph(
             RoomsScreen(
                 viewModel = hotelViewModel,
                 onBackClick = {navController.popBackStack()},
+            )
+        }
+        composable<AllReservationsRoute> {
+            AllReservationsScreen(
+                tripListViewModel = tripListViewModel,
+                onBack = {navController.popBackStack()},
             )
         }
     }

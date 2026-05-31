@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -43,6 +44,7 @@ import com.github.hilican.goandbe.viewmodel.TripListViewModel
 @Composable
 fun TripListScreen(
     onBack: () -> Unit,
+    toReservations: () -> Unit,
     tripListViewModel: TripListViewModel,
     hotelViewModel: HotelViewModel
 ) {
@@ -64,6 +66,7 @@ fun TripListScreen(
         TripListContent(
             tripList = tripList,
             onBack = onBack,
+            toReservations = toReservations,
             onAddTrip = { name, start, end ->
                 tripListViewModel.addTrip(name, start, end)
             },
@@ -83,7 +86,7 @@ fun TripListScreen(
             onDeleteImageClick = { tripId, imagePath ->
                 // Le pasamos a la pantalla superior el ID de este viaje y la ruta de la foto exacta
                 tripListViewModel.deleteImage(tripId, imagePath)
-            }
+            },
         )
     }
 }
@@ -92,6 +95,7 @@ fun TripListScreen(
 fun TripListContent(
     tripList: List<TripWithDetails>,
     onBack: () -> Unit,
+    toReservations: () -> Unit,
     onAddTrip: (String, Long, Long) -> Unit,
     onDeleteTrip: (Trip) -> Unit,
     onAddActivity: (Int, String, Long, Long) -> Unit,
@@ -104,8 +108,27 @@ fun TripListContent(
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Trip")
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(16.dp) // Espacio entre botones
+            ) {
+                // Botón para ver reservas (Secundario o con otro color/icono)
+                FloatingActionButton(
+                    onClick = { toReservations() },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                ) {
+                    // Nota: Asegúrate de tener Icons.Default.DateRange o usa Icons.Default.List
+                    Icon(Icons.Default.DateRange, contentDescription = "Ver Reservas")
+                }
+
+                FloatingActionButton(
+                    onClick = { showDialog = true },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Trip")
+                }
             }
         },
         snackbarHost = {
@@ -337,6 +360,7 @@ private fun TripListPreview() {
         TripListContent(
             tripList = TripMocks.mockListTripsWithDetails,
             onBack = { },
+            toReservations = { },
             onAddTrip = {_,_,_ -> },
             onDeleteTrip = {},
             onAddActivity = {_,_,_,_ -> },

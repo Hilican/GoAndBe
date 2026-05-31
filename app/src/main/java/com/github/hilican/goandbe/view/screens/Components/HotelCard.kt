@@ -34,78 +34,78 @@ import com.github.hilican.goandbe.domain.model.Hotel
 import com.github.hilican.goandbe.view.theme.GoAndBeTheme
 
 
-@Composable
-fun HotelCard(
-    hotel: Hotel,
-    onClick: () -> Unit,
-    isClickable: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        onClick = { if (isClickable) onClick() },
-        modifier = modifier
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isClickable) 4.dp else 0.dp // Menos sombra si está desactivada
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+    @Composable
+    fun HotelCard(
+        hotel: Hotel,
+        onClick: () -> Unit,
+        isClickable: Boolean,
+        modifier: Modifier = Modifier
     ) {
-        Row(Modifier.height(IntrinsicSize.Min)){
-
-            /* ---------- thumbnail ---------- */
-            Image(
-                painter = rememberAsyncImagePainter(
-                    model = BuildConfig.HOTELS_API_URL + hotel.imageUrl,
-                    placeholder = painterResource(R.drawable.ic_launcher_foreground)
-                ),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .width(110.dp)
-                    .fillMaxHeight()
+        Card(
+            onClick = { if (isClickable) onClick() },
+            modifier = modifier
+                .fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (isClickable) 4.dp else 0.dp // Menos sombra si está desactivada
+            ),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
+        ) {
+            Row(Modifier.height(120.dp)){
 
-            /* ---------- info ---------- */
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = hotel.name, style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = hotel.address, style = MaterialTheme.typography.bodyMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(), // Importante para que los extremos se separen
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // --- BLOQUE IZQUIERDO: Habitaciones ---
-                    Icon(
-                        imageVector = Icons.Default.Home, // Puedes usar Icons.Default.Menu o uno de cama si tienes
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    // Controlamos si la lista de habitaciones es nula o vacía mostrando 0
-                    Text(
-                        text = "${hotel.rooms?.size ?: 0} habs",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                /* ---------- thumbnail ---------- */
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        model = BuildConfig.HOTELS_API_URL + hotel.imageUrl,
+                        placeholder = painterResource(R.drawable.ic_launcher_foreground)
+                    ),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .width(110.dp)
+                        .fillMaxHeight()
+                )
 
-                    // --- EL IMÁN: Empuja el siguiente bloque a la derecha ---
-                    Spacer(modifier = Modifier.weight(1f))
+                /* ---------- info ---------- */
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = hotel.name, style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = hotel.address, style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(), // Importante para que los extremos se separen
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // --- BLOQUE IZQUIERDO: Habitaciones ---
+                        Icon(
+                            imageVector = Icons.Default.Home, // Puedes usar Icons.Default.Menu o uno de cama si tienes
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        // Controlamos si la lista de habitaciones es nula o vacía mostrando 0
+                        Text(
+                            text = "${hotel.rooms?.size ?: 0} habs",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
 
-                    // --- BLOQUE DERECHO: Estrellas / Rating ---
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "${hotel.rating}", style = MaterialTheme.typography.bodyLarge)
+                        // --- EL IMÁN: Empuja el siguiente bloque a la derecha ---
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        // --- BLOQUE DERECHO: Estrellas / Rating ---
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = "${hotel.rating}", style = MaterialTheme.typography.bodyLarge)
+                    }
                 }
             }
         }
     }
-}
 
 @Preview(showBackground = true)
 @Composable

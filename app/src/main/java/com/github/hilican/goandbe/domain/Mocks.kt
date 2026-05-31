@@ -229,4 +229,12 @@ object HotelMock {
         hotels = listOf(mockHotel, mockHotel2),
         availableHotels = listOf(mockHotel, mockHotel2)
     )
+
+    val mockHotelUiWithHotelId = HotelUiState(
+        isLoading = false,
+        errorMessage = null,
+        hotels = listOf(mockHotel, mockHotel2),
+        availableHotels = listOf(mockHotel, mockHotel2),
+        hotelId = mockHotel.id
+    )
 }

@@ -40,7 +40,8 @@ import com.github.hilican.goandbe.view.theme.GoAndBeTheme
 @Composable
 fun ReservationCard(
     item: ReservationRoom,
-    onDelete: (String) -> Unit,
+    DeleteOption : Boolean = false,
+    onDelete: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val totalCost = calculateTotalCost(startDate = item.startDate, endDate = item.endDate, pricePerNight = item.room.price)
@@ -102,21 +103,24 @@ fun ReservationCard(
             }
 
             /* ---------- delete ---------- */
-            FilledIconButton(
-                onClick = {onDelete(item.id)},
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                ),
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .align(Alignment.CenterVertically) // 🎯 Centrado perfecto de altura
-                    .shadow(4.dp, CircleShape) // 🌟 Le da relieve y profundidad
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar reserva"
-                )
+            if(DeleteOption)
+            {
+                FilledIconButton(
+                    onClick = { onDelete(item.id)},
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .align(Alignment.CenterVertically) // 🎯 Centrado perfecto de altura
+                        .shadow(4.dp, CircleShape) // 🌟 Le da relieve y profundidad
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar reserva"
+                    )
+                }
             }
         }
     }
@@ -128,7 +132,6 @@ private fun preview() {
     GoAndBeTheme {
         ReservationCard(
             item = mockReservationRoom,
-            onDelete = {  },
             modifier = Modifier.padding(8.dp)
         )
     }
