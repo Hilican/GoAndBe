@@ -102,23 +102,25 @@ fun AllReservationsContent(
                 val sortedTrips = tripList.sortedByDescending { it.trip.startDate }
 
                 sortedTrips.forEach { tripWithDetails ->
-                    // 1. Añadimos el encabezado del viaje como un ítem único
-                    item(key = "header_${tripWithDetails.trip.tripId}") {
-                        Text(
-                            text = "Reserva: ${tripWithDetails.trip.name}",
-                            style = MaterialTheme.typography.titleMedium, // O el estilo que prefieras
-                            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp)
-                        )
-                    }
+                    if(tripWithDetails.reservations.isNotEmpty()){
+                        // 1. Añadimos el encabezado del viaje como un ítem único
+                        item(key = "header_${tripWithDetails.trip.tripId}") {
+                            Text(
+                                text = "Reserva: ${tripWithDetails.trip.name}",
+                                style = MaterialTheme.typography.titleMedium, // O el estilo que prefieras
+                                modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp)
+                            )
+                        }
 
-                    // 2. Añadimos cada una de sus reservaciones como ítems individuales
-                    items(
-                        items = tripWithDetails.reservations,
-                        key = { reservation -> reservation.id } // Buenas prácticas para el rendimiento
-                    ) { reservation ->
-                        ReservationCard(
-                            item = reservation
-                        )
+                        // 2. Añadimos cada una de sus reservaciones como ítems individuales
+                        items(
+                            items = tripWithDetails.reservations,
+                            key = { reservation -> reservation.id } // Buenas prácticas para el rendimiento
+                        ) { reservation ->
+                            ReservationCard(
+                                item = reservation
+                            )
+                        }
                     }
                 }
             }
