@@ -1,6 +1,5 @@
 # Go And Be - Planificador de Viajes
 
-## POR REVISAR
 Este es el archivo de documentación (`README.md`) para la aplicación **Go And Be**, una solución moderna de gestión de viajes diseñada para Android.
 
 ---
@@ -25,7 +24,8 @@ Para enlazar las pantallas sin acoplar el código de los composables, se central
 
 #### 🗺️ Flujo Principal y Gestión de Viajes
 * **`MainPageScreen.kt`:** El panel de control principal de la app. Utiliza una arquitectura de **Doble Menú Lateral (`ModalNavigationDrawer`)**: un lateral izquierdo dedicado a opciones globales (Preferencias, Términos y Sobre Nosotros) y un lateral derecho para opciones exclusivas de la cuenta del usuario. Cuenta con un diseño minimalista que incluye una `BottomAppBar` optimizada con un botón centralizado (`Icons.Default.DateRange`) para dirigir de forma rápida y cómoda al usuario hacia sus itinerarios.
-* **`TripListScreen.kt`:** El núcleo operativo de la aplicación. Muestra de forma reactiva la colección de viajes del usuario. Desde aquí se gestionan las actividades (`ItineraryItem`) asociadas a cada viaje, permitiendo al usuario añadir, editar o eliminar eventos cotidianos (visitas, comidas, transportes) mientras la pantalla actualiza en tiempo real los costes totales calculados por el ViewModel.
+* **`TripListScreen.kt`:** Muestra de forma reactiva la colección de viajes del usuario. Desde aquí se gestionan las actividades (`ItineraryItem`) asociadas a cada viaje, permitiendo al usuario añadir, editar o eliminar eventos cotidianos (visitas, comidas, transportes) mientras la pantalla actualiza en tiempo real los costes totales calculados por el ViewModel.
+* **`HotelScreen.kt`:** Muestra de forma reactiva los hoteles disponibles en la web. Desde aquí se crean las reservas, permitiendo al usuario añadir reservas a un viaje existente, o crear un viaje junto a la reserva
 
 #### 📄 Pantallas de Soporte e Información
 * **`PreferencesScreen.kt`:** Espacio destinado a las preferencias del sistema o personalización de la experiencia del usuario dentro de la app.
@@ -37,20 +37,6 @@ Para enlazar las pantallas sin acoplar el código de los composables, se central
 La aplicación utiliza la arquitectura oficial **MVVM (Model-View-ViewModel)**. Los ViewModels se encargan de gestionar el estado de la interfaz de usuario de manera segura ante cambios de configuración (como la rotación de pantalla) y de procesar las interacciones del usuario, aislando por completo las vistas (`Screens`) de la lógica de datos.
 
 Se implementa el patrón **UDF (Flujo de Datos Unidireccional)**, donde la UI solo emite eventos hacia el ViewModel y este expone un único estado inmutable a través de un `StateFlow`.
-
-### 🔐 1. AuthViewModel
-Este componente centraliza el estado de autenticación y la gestión del perfil del usuario actual. Inyecta `IAuthRepository` mediante Hilt.
-
-* **Patrón de Estado Unificado (`UserUiState`):** En lugar de manejar múltiples variables sueltas, encapsula todo el estado de la pantalla en un único DTO reactivo `UserUiState`:
-  ```kotlin
-  data class UserUiState(
-      val user: User? = null,
-      val isLoading: Boolean = true,
-      val isSaving: Boolean = false,
-      val errorMessage: String? = null,
-      val isAuthenticated: Boolean = false,
-      val isPasswordResetSent: Boolean = false
-  )
 
 ## 🗄️ Capa de Repositorios (Patrón Repository)
 
@@ -74,6 +60,14 @@ Este repositorio maneja exclusivamente el dominio de los viajes y sus respectivo
     * **Viajes:** Permite añadir (`addTrip`), editar (`editTrip`), eliminar (`deleteTrip`) u obtener detalles por ID.
     * **Actividades (`ItineraryItem`):** Proporciona los accesos directos para la inserción, actualización y eliminación de actividades vinculadas, permitiendo al ViewModel coordinar los cálculos de costes de los itinerarios de manera centralizada.
 
+### 🏠 3. HotelApiRepository
+Este repositorio maneja exclusivamente el dominio de la API que proporciona communicacion con la web de hoteles e implementando la interfaz `IHotelApiRepository`.
+
+* **Flujos de Datos Complejos (`getTripsForUser`):** Expone un flujo continuo (`Flow<List<TripWithItinerary>>`) de los viajes asignados a un usuario. Room notifica automáticamente al flujo en cuanto ocurre cualquier cambio en las tablas, permitiendo una interfaz reactiva sin peticiones manuales de refresco.
+* **Operaciones CRUD Agrupadas:** Centraliza tanto la gestión de los viajes (`Trip`) como de sus elementos secundarios:
+    * **Viajes:** Permite añadir (`addTrip`), editar (`editTrip`), eliminar (`deleteTrip`) u obtener detalles por ID.
+    * **Actividades (`ItineraryItem`):** Proporciona los accesos directos para la inserción, actualización y eliminación de actividades vinculadas, permitiendo al ViewModel coordinar los cálculos de costes de los itinerarios de manera centralizada.
+
 
 ## 💾 Gestión de Datos y Autenticación (¿Dónde se guardan las cosas?)
 
@@ -91,6 +85,12 @@ El diseño de la base de datos local cubre las siguientes funciones:
 * **CRUD Completo de Usuarios:** El sistema permite **Crear** (SignIn), **Leer** (Login/Perfil), **Actualizar** (Ajustes de usuario) y **Eliminar** cuentas locales de forma completa.
 * **Información Personalizada del Usuario:** Cada perfil almacena datos específicos (UUID de Firebase, email, nombre de usuario, fecha de nacimiento, teléfono, preferencias de correo) utilizando técnicas avanzadas de Room como `@Embedded` para estructurar objetos complejos (por ejemplo, la clase `Address`).
 * **Estructura Relacional (Viajes Asignados):** Los datos están completamente vinculados de forma relacional mediante llaves foráneas (`ForeignKeys`). Cada viaje creado está estrictamente asignado al `userId` del usuario en sesión, garantizando que al cambiar de cuenta o iniciar sesión, el usuario vea única y exclusivamente su lista de viajes personalizados junto con sus respectivos itinerarios y actividades.
+* **Estructura Relacional (Reservas Asignadas):** Los datos están completamente vinculados de forma relacional mediante llaves foráneas (`ForeignKeys`). Cada reserva creada está estrictamente asignada un tripId del usuario en sesión, garantizando que al cambiar de cuenta o iniciar sesión, el usuario vea única y exclusivamente su lista de viajes y por lo tanto reservas personalizadas junto con sus respectivos itinerarios y actividades.
+
+### 🌐 3. Integración con API Externa
+Además del ecosistema local, la aplicación interactúa con servicios web para enriquecer la experiencia de usuario:
+
+* **Sincronización de Reservas:** Las reservas de los viajes no solo persisten en el almacenamiento local para su consulta inmediata offline, sino que también están registradas y respaldadas en la plataforma web a través de la API, asegurando la consistencia de los datos entre los distintos canales del servicio.
 
 ## 🧪 Pruebas Unitarias y Verificación Visual (Previews)
 
@@ -106,7 +106,7 @@ Actualmente, el proyecto cuenta con cobertura de pruebas unitarias en sus compon
 > 💡 **Arquitectura Testeable:** Gracias a la eliminación completa de dependencias rígidas de Firebase dentro de la lógica del ViewModel, los tests se ejecutan de forma nativa en la JVM en cuestión de milisegundos, utilizando **MockK** para falsear de forma limpia el comportamiento de la capa de datos.
 
 ### 📱 2. Vistas Previas en Tiempo Real (Compose Previews)
-Para garantizar un desarrollo ágil y una interfaz de usuario pulida sin necesidad de compilar la aplicación en un emulador o dispositivo físico en cada cambio, **todas las pantallas (`Screens`) del proyecto implementan funciones `@Preview`**.
+Para garantizar un desarrollo ágil y una interfaz de usuario pulida sin necesidad de compilar la aplicación en un emulador o dispositivo físico en cada cambio, **todas las pantallas (`Screens`) y algunos Componentes del proyecto implementan funciones `@Preview`**.
 
 * **Renderizado de Estados:** Las previews están diseñadas para simular los diferentes estados de la UI (por ejemplo: vista en estado de carga, pantallas con datos simulados utilizando objetos de prueba o flujos de error), permitiendo validar el comportamiento visual al instante.
 * **Consistencia de Diseño:** Facilita el ajuste rápido de márgenes, tipografías y componentes de Material 3, asegurando que la interfaz sea consistente y responsiva antes de integrarse en el grafo de navegación real.
