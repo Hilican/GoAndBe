@@ -73,7 +73,7 @@ class TripListViewModel @Inject constructor (
                 reservationsToCancel.forEach { reservation ->
                     try {
                         // Reemplaza por tu llamada real al repositorio
-                        hotelApiRepository.deleteById(reservation.id)
+                        hotelApiRepository.cancelById(reservation.id)
                         Log.d("TripViewModel", "Cancelada en servidor la reserva: ${reservation.id}")
                     } catch (e: Exception) {
                         // Si falla internet para una reserva, logueamos pero seguimos con las demás

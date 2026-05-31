@@ -27,6 +27,7 @@ fun LoginScreen(
     onBack: () -> Unit,
     onNavigateToHome: () -> Unit,
     goToForgottenPassword: () -> Unit,
+    goToSignIn: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -49,7 +50,8 @@ fun LoginScreen(
         },
         onBack = onBack,
         onValueChange = { viewModel.clearError() },
-        goToForgottenPassword = { goToForgottenPassword() }
+        goToForgottenPassword = { goToForgottenPassword() },
+        goToSignIn = { goToSignIn() }
     )
 }
 
@@ -59,6 +61,7 @@ fun LoginContent(
     isLoading: Boolean,
     onLoginClick: (String, String) -> Unit,
     onBack: () -> Unit,
+    goToSignIn: () -> Unit,
     onValueChange: () -> Unit = {},
     goToForgottenPassword: () -> Unit,
 ) {
@@ -134,7 +137,9 @@ fun LoginContent(
         }
 
         //Error
-        Box(modifier = Modifier.height(32.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .height(32.dp)
+            .fillMaxWidth(), contentAlignment = Alignment.Center) {
             errorMsg?.let {
                 Text(
                     text = it,
@@ -146,6 +151,12 @@ fun LoginContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        TextButton(
+            onClick = { goToSignIn() },
+            enabled = !isLoading
+        ) {
+            Text("¿No tienes cuenta?")
+        }
         TextButton(
             onClick = { goToForgottenPassword() },
             enabled = !isLoading
@@ -177,7 +188,8 @@ private fun preview() {
             onLoginClick = { email, pass -> },
             onBack = {},
             onValueChange = {},
-            goToForgottenPassword = {}
+            goToForgottenPassword = {},
+            goToSignIn = {},
         )
     }
 }

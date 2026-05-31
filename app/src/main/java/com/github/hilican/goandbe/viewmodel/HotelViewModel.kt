@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.hilican.goandbe.BuildConfig
 import com.github.hilican.goandbe.data.Room.ReservationRoom
+import com.github.hilican.goandbe.data.Room.Trip
 import com.github.hilican.goandbe.repo.interfaces.IAuthRepository
 import com.github.hilican.goandbe.repo.interfaces.IHotelApiRepository
 import com.github.hilican.goandbe.repo.interfaces.ITripRepository
@@ -33,7 +34,9 @@ data class HotelUiState(
     val hotelId: String = "",
     val doe: Long = 0L,
     val dod: Long = 0L,
-    val tripId: Int = -2,       //-2 = No se ha escodigo, -1 Para un futuro indicar que se quiere crear un nuevo trip con la reserva
+    val tripId: Int = -1,       //-1 = No se ha escodigo, -2 nuevo trip con la reserva
+    val newName: String = "",
+    val city: String = "",
 )
 
 @HiltViewModel
@@ -89,34 +92,14 @@ class HotelViewModel @Inject constructor (
         }
     }
 
-    fun setTripId(tripId: Int) {
-        _uiState.update {
-            it.copy(tripId = tripId)
-        }
-    }
-
-    fun clearTripId() {
-        _uiState.update {
-            it.copy(tripId = -2)
-        }
-    }
-
-    fun clearAvailableHotels() {
-        _uiState.update {
-            it.copy(availableHotels = emptyList())
-        }
-    }
-
-    fun setHotelId(hotelId: String) {
-        _uiState.update {
-            it.copy(hotelId = hotelId)
-        }
-    }
-    fun clearHotelId() {
-        _uiState.update {
-            it.copy(hotelId = "")
-        }
-    }
+    fun setNewName(newName : String) = _uiState.update { it.copy(newName = newName) }
+    fun clearNewName() = _uiState.update { it.copy(newName = "") }
+    fun setTripId(tripId: Int) = _uiState.update { it.copy(tripId = tripId) }
+    fun clearTripId() = _uiState.update { it.copy(tripId = -1) }
+    fun clearAvailableHotels() = _uiState.update { it.copy(availableHotels = emptyList()) }
+    fun setHotelId(hotelId: String) = _uiState.update { it.copy(hotelId = hotelId) }
+    fun clearHotelId() = _uiState.update { it.copy(hotelId = "") }
+    fun clearCity() = _uiState.update { it.copy(city = "") }
     fun checkAvailability(
         start: Long,
         end: Long,
@@ -149,14 +132,8 @@ class HotelViewModel @Inject constructor (
                         dod = end,
                     )
                 }
-                if(hotelId != null)
-                {
-                    _uiState.update {
-                        it.copy(
-                            hotelId = hotelId
-                        )
-                    }
-                }
+                if(city != null) _uiState.update { it.copy(city = city) }
+                if(hotelId != null) _uiState.update { it.copy(hotelId = hotelId) }
             } catch (e: HttpException) {
                 // 1. Usamos tu utilidad para sacar el mensaje limpio que envía el servidor
                 val parsedErrorMessage = ErrorUtils.extractErrorMessage(e)
@@ -196,14 +173,18 @@ class HotelViewModel @Inject constructor (
                 }
                 return@launch
             }
+            // 1. Obtenemos el usuario actual de Room
             val user = authRepository.getUserById(currentUserId)
             if (user == null) {
                 // lógica de error
                 _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "No se ha encontrado el usuario")
+                    it.copy(isLoading = false, errorMessage = "No se ha encontrado el usuario en Room")
                 }
                 return@launch
             }
+
+
+            // peticion a la pag web
             val startDateStr = (uiState.value.doe / 1000).toString()
             val endDateStr = (uiState.value.dod / 1000).toString()
 
@@ -225,11 +206,34 @@ class HotelViewModel @Inject constructor (
                     hotel = localHotel ?: reserve.hotel,
                     room = localRoom ?: reserve.room
                 )
+                if(uiState.value.tripId == -2)
+                {
+                    val newTrip = Trip(
+                        userId = currentUserId,
+                        name = uiState.value.newName,
+                        startDate = uiState.value.doe,
+                        endDate = uiState.value.dod,
+                        totalCost = 0L
+                    )
 
+                    val insertedIdLong = tripRepository.addTrip(newTrip)
+                    if (insertedIdLong != -1L) {
+                        val generatedTripId = insertedIdLong.toInt()
+                        _uiState.update { it.copy(tripId = generatedTripId) }
+                    }else{
+                        Log.e("TripViewModel", "Fallo al guardar: Room devolvió -1 al intentar insertar el nuevo Trip")
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "No se pudo crear el viaje en tu dispositivo."
+                            )
+                        }
+                    }
+                }
                 val toAdd = enrichedReserve.toRoomEntity(uiState.value.tripId)
                 val result = tripRepository.addReserve(toAdd)
                 result.onSuccess { rowId ->
-                    // 🌟 NUEVO: Si la reserva se guardó bien localmente, actualizamos el coste del viaje
+                    // Si la reserva se guardó bien localmente, actualizamos el coste del viaje
                     val tripId = uiState.value.tripId
                     val existingTrip = tripRepository.getTripById(tripId)
 
@@ -255,7 +259,14 @@ class HotelViewModel @Inject constructor (
                     _uiState.update {
                         it.copy(isLoading = false)
                     }
-                    setTripId(-2)
+                    clearTripId()
+                    clearNewName()
+                    //Actualiozar lista
+                    checkAvailability(
+                        start = uiState.value.doe,
+                        end = uiState.value.dod,
+                        city = uiState.value.city
+                    )
                 }.onFailure { exception ->
                     Log.e("TripViewModel", "Fallo al guardar: ${exception.message}")
                     _uiState.update {
@@ -287,35 +298,39 @@ class HotelViewModel @Inject constructor (
         // Ejecutamos en una corrutina (viewModelScope) porque el repo es suspend
         viewModelScope.launch {
             try {
+                val deletedReserve = repository.cancelById(reserveId)
+                val result = tripRepository.getReservationById(deletedReserve.id)
+
                 //Lo complico un poco simplemente para no usar lo de "admin" (deleteById)
-                val result = tripRepository.getReservationById(reserveId)
                 result.onSuccess { reserve ->
-                    val msg = repository.cancelByGroupId(groupId,reserve.toRequest())
                     // 3. 📉 ACTUALIZACIÓN DEL COSTE DEL VIAJE
-                    // Buscamos el viaje padre al que pertenece esta reserva
                     val existingTrip = tripRepository.getTripById(reserve.parentTripId)
-
                     existingTrip?.let { trip ->
-                        // Convertimos las fechas de la reserva (que están en String/milisegundos) a Long
-                        val startMillis = reserve.startDate.toLongOrNull() ?: 0L
-                        val endMillis = reserve.endDate.toLongOrNull() ?: 0L
-
-                        // Calculamos las noches totales que duraba la reserva
-                        val totalNights = ((endMillis - startMillis) / (1000 * 60 * 60 * 24)).toInt()
-                        // Calculamos cuánto costó esta reserva en su momento (Precio por noche x Noches)
-                        // Si tu modelo local guarda el precio como Double/Float, lo casteamos a Long
+                        val startMillis = convertStringToMillisFromApi(reserve.startDate)
+                        val endMillis = convertStringToMillisFromApi(reserve.endDate)
+                        val totalNights = ((endMillis - startMillis) / (24L * 60 * 60 * 1000)).toInt()
                         val reservationCost = (reserve.room.price * totalNights).toLong()
-
-                        // Restamos el coste de la reserva al total del viaje (evitando que baje de 0)
                         val updatedTotalCost = (trip.totalCost - reservationCost).coerceAtLeast(0L)
-
-                        // Guardamos el viaje modificado con el nuevo coste en Room
                         val updatedTrip = trip.copy(totalCost = updatedTotalCost)
+                        Log.d("TripReservationDebug", """
+                        === DATOS DE LA RESERVA Y COSTOS ===
+                        - Origil doe        ${reserve.startDate}
+                        - Origil dod        ${reserve.endDate}
+                        - Start Millis:     $startMillis
+                        - End Millis:       $endMillis
+                        - Total Noches:     $totalNights
+                        - Costo Reserva:    $reservationCost
+                        - Costo Anterior:   ${trip.totalCost}
+                        - Costo Actualizado: $updatedTotalCost
+                        - Nuevo Objeto:     $updatedTrip
+                        =====================================
+                        """.trimIndent())
                         tripRepository.editTrip(updatedTrip)
                     }
+                    tripRepository.deleteReserve(reserve)
                     _uiState.update {
                             it.copy(isLoading = false, errorMessage = null)
-                        }
+                    }
                 }
                 .onFailure {
                     _uiState.update {

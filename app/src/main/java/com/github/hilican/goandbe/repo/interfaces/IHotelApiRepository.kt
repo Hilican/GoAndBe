@@ -30,5 +30,5 @@ interface IHotelApiRepository {
 
     /* ---------- Operations by reservation-id ---------- */
     suspend fun getReservationById(resId: String): Reservation
-    suspend fun deleteById(resId: String): Reservation
+    suspend fun cancelById(resId: String): Reservation
 }

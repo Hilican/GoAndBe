@@ -30,9 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.github.hilican.goandbe.BuildConfig
 import com.github.hilican.goandbe.R
 import com.github.hilican.goandbe.data.Room.ReservationRoom
 import com.github.hilican.goandbe.domain.HotelMock.mockReservationRoom
+import com.github.hilican.goandbe.domain.calculateTotalCost
 import com.github.hilican.goandbe.view.theme.GoAndBeTheme
 
 @Composable
@@ -41,6 +43,8 @@ fun ReservationCard(
     onDelete: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val totalCost = calculateTotalCost(startDate = item.startDate, endDate = item.endDate, pricePerNight = item.room.price)
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -54,8 +58,8 @@ fun ReservationCard(
             /* ---------- thumbnail ---------- */
             Image(
                 painter = rememberAsyncImagePainter(
-                    model = item.room.images.firstOrNull(),
-                    placeholder = painterResource(R.drawable.ic_launcher_foreground)
+                    model = BuildConfig.HOTELS_API_URL + item.room.images.firstOrNull(),
+                    placeholder = painterResource( R.drawable.ic_launcher_foreground)
                 ),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
@@ -91,7 +95,7 @@ fun ReservationCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "€${item.room.price}",
+                        text = "€${totalCost}",
                         fontWeight = FontWeight.Bold
                     )
                 }

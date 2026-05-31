@@ -42,7 +42,8 @@ fun NavGraph(
                 viewModel = authViewModel,
                 onBack = { navController.popBackStack() },
                 onNavigateToHome = { navController.navigate(MainPageScreenRoute) },
-                goToForgottenPassword = { navController.navigate(ForgottenPasswordRoute) }
+                goToForgottenPassword = { navController.navigate(ForgottenPasswordRoute) },
+                goToSignIn = { navController.navigate(SignInRoute) }
             )
         }
         composable<PreferencesRoute> {

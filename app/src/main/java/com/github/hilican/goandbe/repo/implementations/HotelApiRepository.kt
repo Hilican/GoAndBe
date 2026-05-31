@@ -68,7 +68,7 @@ class HotelApiRepository @Inject constructor(
         return api.getReservationById(resId).toDomain()
     }
 
-    override suspend fun deleteById(resId: String): Reservation {
+    override suspend fun cancelById(resId: String): Reservation {
         return api.deleteReservationById(resId).toDomain()
     }
 }

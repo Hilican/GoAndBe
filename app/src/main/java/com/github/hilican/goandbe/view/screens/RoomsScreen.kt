@@ -56,7 +56,9 @@ fun RoomsScreen(
 
     RoomContent(
         state = state,
-        onBackClick = onBackClick,
+        onBackClick = {
+            onBackClick()
+        },
         onReserve = { roomId ->
             viewModel.createReserve(roomId)
         },

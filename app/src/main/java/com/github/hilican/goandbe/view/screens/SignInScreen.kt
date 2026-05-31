@@ -50,7 +50,6 @@ fun SignInScreen(
         }
     }
 
-    // Aquí conectamos el ViewModel con la UI
     SignInContent(
         errorMsg = state.errorMessage,
         isLoading = state.isLoading,

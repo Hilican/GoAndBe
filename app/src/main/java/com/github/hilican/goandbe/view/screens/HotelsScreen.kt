@@ -61,6 +61,7 @@ fun HotelsScreen(
         state = hotelState,
         onBackClick = {
             hotelViewModel.clearAvailableHotels()
+            hotelViewModel.clearCity()
             onBackClick()
         },
         onHotelClick = { hotelId ->
@@ -69,6 +70,7 @@ fun HotelsScreen(
         },
         onSearchClick = {
             hotelViewModel.clearHotelId()
+            hotelViewModel.clearCity()
             isSearchDialogOpen = true
         },
         modifier = modifier
@@ -82,10 +84,14 @@ fun HotelsScreen(
                 isSearchDialogOpen = false
                 hotelViewModel.clearTripId()
             },
-            onConfirmSearch = { tripId, startMillis, endMillis, city ->
+            onConfirmSearch = { tripId, startMillis, endMillis, city, newName ->
                 isSearchDialogOpen = false
 
                 hotelViewModel.setTripId(tripId)
+                if(newName != "")
+                {
+                    hotelViewModel.setNewName(newName)
+                }
 
                 // Ejecutamos la búsqueda de disponibilidad con los datos del diálogo
                 hotelViewModel.checkAvailability(
@@ -130,7 +136,7 @@ fun HotelContent(
             ExtendedFloatingActionButton(
                 onClick = onSearchClick,
                 icon = { Icon(Icons.Default.Search, contentDescription = null) },
-                text = { Text("Buscar Fechas") }
+                text = { Text("Buscar por fechas") }
             )
         }
     ) { paddingValues ->

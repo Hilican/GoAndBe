@@ -78,11 +78,6 @@ fun DatePickerField(
         }
     }
 
-    // 3. Le pasamos las reglas ya memorizadas al estado del DatePicker
-    val datePickerState = rememberDatePickerState(
-        selectableDates = selectableDatesRules
-    )
-
     val dateDisplayString = remember(selectedDate) {
         if (selectedDate > 0L) { // Simplificado: Long primitivo no es nulo
             val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
@@ -97,7 +92,7 @@ fun DatePickerField(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { showModal = true }
+            .clickable(enabled = enabled) { showModal = true }
     ) {
         OutlinedTextField(
             value = dateDisplayString,
@@ -139,6 +134,9 @@ fun DatePickerField(
 
     // 2. The Experimental Dialog
     if (showModal) {
+        val datePickerState = rememberDatePickerState(
+            selectableDates = selectableDatesRules
+        )
         DatePickerDialog(
             onDismissRequest = { showModal = false },
             confirmButton = {
